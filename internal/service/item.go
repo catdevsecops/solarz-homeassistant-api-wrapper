@@ -19,14 +19,14 @@ import (
 
 const (
 	// defaultSolarzEndpoint is the default trusted Solarz API endpoint.
-	defaultSolarzEndpoint = "https://api.solarz.com/v1/data"
+	defaultSolarzEndpoint = "https://app.solarz.com.br/shareable/generation/period"
 	// httpClientTimeout is the timeout for HTTP requests (prevent hanging connections).
 	httpClientTimeout = 10 * time.Second
 )
 
 // allowedSolarzHosts contains the list of trusted hosts for Solarz API.
 var allowedSolarzHosts = map[string]bool{
-	"api.solarz.com": true,
+	"app.solarz.com.br": true,
 }
 
 // getSecureHTTPClient returns a configured HTTP client with security restrictions.
