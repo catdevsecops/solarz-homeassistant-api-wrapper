@@ -29,4 +29,3 @@ func GetData(w http.ResponseWriter, _ *http.Request) {
 		log.Printf("ERROR: %v", err)
 	}
 }
-

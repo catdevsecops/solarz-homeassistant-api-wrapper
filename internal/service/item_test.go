@@ -103,9 +103,9 @@ func TestGetData_ValidAPI(t *testing.T) {
 						Denominacao: "(3633) Clayton - Mogi",
 					},
 				},
-				TotalGerado:    75.4,
+				TotalGerado:      75.4,
 				TotalPrognostico: 138.53,
-				Desempenho:     54.42,
+				Desempenho:       54.42,
 			}
 			json.NewEncoder(w).Encode(response)
 		}))

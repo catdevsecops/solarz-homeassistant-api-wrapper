@@ -59,4 +59,3 @@ func GetData() ([]model.Item, error) {
 func formatFloat(val float64) string {
 	return strconv.FormatFloat(val, 'f', 2, 64)
 }
-

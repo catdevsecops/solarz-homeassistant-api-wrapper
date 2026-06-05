@@ -189,4 +189,3 @@ func TestGetData_DifferentMethods(t *testing.T) {
 		}
 	})
 }
-
