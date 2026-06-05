@@ -1,0 +1,201 @@
+# .golangci.yml
+# Configuração para golangci-lint
+
+run:
+  timeout: 5m
+  tests: true
+  skip-dirs:
+    - vendor
+  skip-files: []
+
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+
+linters:
+  enable:
+    - errcheck        # Verifica erros não tratados
+    - gosimple        # Sugere simplificações
+    - govet           # Análise estática padrão do Go
+    - ineffassign     # Detecta atribuições não usadas
+    - staticcheck      # Análise estática avançada
+    - typecheck       # Verifica tipos
+    - unused          # Detecta código não utilizado
+    - asasalint       # Detecta problemas com tipos de slice
+    - bidichk         # Detecta caracteres bidirecionais perigosos
+    - bodyclose       # Verifica fechamento de corpos HTTP
+    - contextcheck    # Verifica uso apropriado de context
+    - cyclomatic      # Verifica complexidade ciclomática
+    - decorder        # Verifica ordem de declarações
+    - depguard        # Controla dependências
+    - dogsled         # Detecta argumentos sem nome consecutivos
+    - durationcheck   # Detecta multiplicações de duration incorretas
+    - errchkjson      # Detecta erros em json.Marshal
+    - errorlint       # Detecta erros de formatação
+    - exhaustive      # Detecta switches incompletos
+    - exportloopref   # Detecta referências de loop exportadas
+    - forbidigo       # Detecta padrões proibidos
+    - forcetypeassert # Detecta type assertions forçadas
+    - funlen          # Verifica tamanho de funções
+    - gochecknoinits  # Detecta init functions
+    - gocognit        # Verifica complexidade cognitiva
+    - goconst         # Detecta constantes duplicadas
+    - gocritic        # Análise crítica de Go
+    - godot           # Detecta comentários sem ponto final
+    - gofmt           # Verifica formatação
+    - goimports       # Verifica imports
+    - gomodguard      # Controla módulos
+    - goprintffunc    # Detecta funções Printf problemáticas
+    - gosec           # Verifica vulnerabilidades de segurança
+    - gosmopolitan    # Detecta código não-portável
+    - grouper         # Detecta agrupamento incorreto
+    - ifshort         # Detecta if statements que podem ser simplificados
+    - ireturn         # Detecta tipos interface retornados
+    - lll             # Verifica linhas muito longas
+    - loggercheck     # Verifica chamadas de logger
+    - makezero        # Detecta make com comprimento diferente de zero
+    - misspell        # Detecta erros de digitação
+    - musttag         # Detecta structs sem tags obrigatórias
+    - nakedret        # Detecta return nu em funções com resultado nomeado
+    - nilerr          # Detecta retornos de nil sem erro
+    - nilnil          # Detecta comparações nil redundantes
+    - noctx           # Detecta funções sem context
+    - nonamedreturns  # Detecta retornos nomeados
+    - nosprintfhosting # Detecta hosting em printf
+    - prealloc        # Detecta slices pré-alocáveis
+    - predeclared     # Detecta shadows de variáveis predeclared
+    - revive          # Detalhes de estilo de Go
+    - rowserrcheck    # Detecta erros em rows.Err()
+    - sloglint        # Verifica logs estruturados
+    - sqlclosecheck   # Detecta sql.Rows/Rows não fechados
+    - stylecheck      # Verifica estilo
+    - tagliatelle     # Verifica tags de struct
+    - tenv            # Detecta variáveis de ambiente não testadas
+    - testableexamples # Detecta exemplos não testáveis
+    - testifylint     # Verifica uso de testify
+    - testpackage     # Detecta testes em package principal
+    - thelper         # Detecta funções helper
+    - unconvert       # Detecta conversões desnecessárias
+    - usestdlibvars   # Detecta uso de variáveis stdlib
+    - varnamelen      # Verifica comprimento de nomes de variáveis
+    - wastedassign    # Detecta atribuições perdidas
+
+  disable:
+    - gochecknoglobals # Permite variáveis globais
+
+linters-settings:
+  cyclomatic:
+    max-complexity: 15
+  
+  funlen:
+    lines: 100
+    statements: 50
+  
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+  
+  gocognit:
+    max-cognitive: 20
+  
+  lll:
+    line-length: 120
+    tab-width: 4
+  
+  varnamelen:
+    min-name-length: 1
+    check-receiver: true
+    check-named-return: false
+    ignore-names:
+      - w
+      - r
+      - i
+      - j
+      - k
+      - c
+      - t
+      - f
+      - e
+      - b
+      - n
+      - x
+      - y
+      - z
+      - s
+      - h
+      - T
+      - P
+      - V
+      - ok
+      - ch
+      - fn
+      - fs
+      - mu
+      - op
+      - id
+      - ip
+      - tx
+      - ax
+      - fp
+    ignore-type-names:
+      - T
+
+  godot:
+    scope: all
+    period: true
+    period-tables: true
+
+  errorlint:
+    errorf: true
+    asserts: true
+    comparison: true
+
+  govet:
+    enable:
+      - atomicalign
+      - bools
+      - buildssa
+      - cgocall
+      - composites
+      - copylock
+      - ctrlflow
+      - deepequalerrors
+      - errorsas
+      - fieldalignment
+      - httpresponse
+      - ifaceassert
+      - lostcancel
+      - nilfunc
+      - nilness
+      - printf
+      - shadow
+      - shift
+      - sigchanyzer
+      - slog
+      - stdmethods
+      - stringintconv
+      - structtag
+      - testinggoroutine
+      - tests
+      - unmarshal
+      - unreachable
+      - unsafeptr
+      - unusedresult
+      - unusedwrite
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - forcetypeassert
+        - nonamedreturns
+        - errcheck
+    - path: internal/
+      linters:
+        - gochecknoglobals
+    - linters:
+        - lll
+      source: "^//go:generate"
