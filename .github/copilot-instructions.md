@@ -54,9 +54,84 @@ solarz-homeassistant-api-wrapper/
 
 ---
 
-## 🏷️ Padrões de Nomenclatura
+## 🎯 Padrões de Nomeclatura de Variáveis
 
-### Variáveis e Parâmetros
+### Regra Fundamental: Legibilidade
+
+**IMPORTANTE**: Variáveis devem ser fáceis de ler e entender. Nunca use nomes curtos ou abreviados (exceto para parâmetros padrão do Go).
+
+### Parâmetros Padrão do Go (Aceitos)
+
+Os únicos nomes curtos permitidos são parâmetros padrão amplamente reconhecidos:
+
+| Parâmetro | Significado | Por quê | Aceito |
+|-------------|-------------|---------|--------|
+| `w` | http.ResponseWriter | Convenção de Go | ✅ |
+| `r` | *http.Request | Convenção de Go | ✅ |
+| `err` | error | Convenção de Go | ✅ |
+| `i`, `j`, `k` | Loop counters | Apenas em loops simples | ✅ |
+| `ctx` | context.Context | Convenção de Go | ✅ |
+| `t` | *testing.T | Convenção de Go | ✅ |
+
+### Variáveis Locais: Sempre Descritivas
+
+```go
+// ✅ CORRETO - Nomes descritivos
+responseRecorder := httptest.NewRecorder()
+logOutput := captureLogOutput(func() { ... })
+originalLogger := log.Writer()
+serverConfiguration := ServerConfig{...}
+success Count := 0
+userAuthenticationToken := "Bearer token123"
+
+// ❌ INCORRETO - Nomes curtos
+rec := httptest.NewRecorder()
+out := captureLogOutput(func() { ... })
+orig := log.Writer()
+cfg := ServerConfig{...}
+success := 0
+token := "Bearer token123"
+```
+
+### Regras Específicas
+
+1. **Variáveis de Teste**: Sempre descritivas
+   ```go
+   // ✅ CORRETO
+   testCaseName := "GET request"
+   expectedStatusCode := http.StatusOK
+   responseRecorder := httptest.NewRecorder()
+   
+   // ❌ INCORRETO
+   name := "GET request"
+   status := http.StatusOK
+   rec := httptest.NewRecorder()
+   ```
+
+2. **Variáveis em Loops**: Use índice só em loops de range simples
+   ```go
+   // ✅ CORRETO
+   for iteration := range 5 { ... }  // ou for i := range 5
+   for index, testCase := range testCases { ... }
+   
+   // ❌ INCORRETO
+   for i := 0; i < len(items); i++ { ...  // use range
+   ```
+
+3. **Variáveis de Estado/Config**: Completamente descritivas
+   ```go
+   // ✅ CORRETO
+   originalHttpHandler := log.Writer()
+   capturedLogBuffer := &bytes.Buffer{}
+   requestHeader := req.Header
+   
+   // ❌ INCORRETO
+   h := log.Writer()
+   buf := &bytes.Buffer{}
+   hdr := req.Header
+   ```
+
+---
 
 | Uso | Correto | Incorreto |
 |-----|---------|----------|
@@ -204,7 +279,130 @@ type ServerConfig struct {
 
 ---
 
-## 🧪 Padrões de Testes
+## 🚀 Otimização de Memória: Pré-alocação de Arrays
+
+### Regra Fundamental: Sempre Prealocalize Arrays Quando o Tamanho É Conhecido
+
+A pré-alocação de arrays melhora a performance eliminando realocations de memória.
+
+### Padrão: Arrays com Tamanho Desconhecido
+
+```go
+// ✅ CORRETO - Fazer append com tamanho conhecido previamente
+var resultItems []map[string]string
+for i := range numberOfIterations {
+    // Processar item
+    resultItems = append(resultItems, item)
+}
+
+// ✅ MELHOR - Prealocalize se souber o tamanho
+resultItems := make([]map[string]string, 0, numberOfIterations)
+for i := range numberOfIterations {
+    // Processar item
+    resultItems = append(resultItems, item)
+}
+
+// ❌ INCORRETO - Não prealocizar
+var resultItems []map[string]string
+for i := range 100000 {
+    resultItems = append(resultItems, processItem(i))
+}
+```
+
+### Variações de Uso
+
+#### 1. Quantidade Exata Conhecida
+
+```go
+// ✅ CORRETO
+appendedTestResults := make([]TestResult, numberOfTests)
+for testIndex := range numberOfTests {
+    appendedTestResults[testIndex] = runTest(testIndex)
+}
+```
+
+#### 2. Quantidade Aproximada
+
+```go
+// ✅ CORRETO - Use capacity hint
+collectedHttpResponses := make([]http.Response, 0, estimatedResponseCount)
+for responseItem := range responseChannel {
+    collectedHttpResponses = append(collectedHttpResponses, responseItem)
+}
+```
+
+#### 3. Array de Structs (Teste)
+
+```go
+// ✅ CORRETO
+testCaseScenarios := []struct {
+    testName   string
+    httpMethod string
+}{
+    {"GET request", "GET"},
+    {"POST request", "POST"},
+    {"DELETE request", "DELETE"},
+}
+
+// ✅ CORRETO - Com prealocisão se dinâmico
+processedResults := make([]ProcessingResult, 0, len(inputItems))
+for _, inputItem := range inputItems {
+    processedResults = append(processedResults, processItem(inputItem))
+}
+```
+
+#### 4. Acumulativo em Loops
+
+```go
+// ✅ CORRETO - Quando tamanho total conhecido
+collectedResponses := make([]ResponseData, 0, totalExpectedResponses)
+for iterationIndex := range numberOfIterations {
+    request := httptest.NewRequest(http.MethodGet, "/health", nil)
+    responseRecorder := httptest.NewRecorder()
+    
+    healthHandler(responseRecorder, request)
+    
+    collectedResponses = append(collectedResponses, parseResponse(responseRecorder))
+}
+
+// ✅ MELHOR - Se o tamanho final é exato
+finalResponses := make([]ResponseData, numberOfIterations)
+for iterationIndex := range numberOfIterations {
+    // Processa
+    finalResponses[iterationIndex] = processItem(iterationIndex)
+}
+```
+
+### Quando NÃO Prealocizar
+
+```go
+// ✅ OK - Poucos itens, tamanho desconhecido
+smallList := []string{}
+for item := range smallCollection {
+    smallList = append(smallList, item.String())
+}
+
+// ✅ OK - Uma única operação
+quickResult := append(existingList, newItem)
+```
+
+### Impacto de Performance
+
+```go
+// Sem pré-alocação: Reallocations múltiplas
+// 1 item: 1 alocão
+// 10 items: 4-5 reallocations
+// 1000 items: 10-12 reallocations
+// 100000 items: 17-18 reallocations
+
+// Com pré-alocação: Apenas 1 alocação
+// 1 item: 1 alocão
+// 10 items: 1 alocão
+// 1000 items: 1 alocão
+// 100000 items: 1 alocão
+```
+
+---
 
 ### Teste Básico (Unit Test)
 
@@ -599,7 +797,40 @@ Antes de usar Copilot/IA para gerar código, certifique-se de que:
 
 ---
 
-**Versão**: 1.0
+**Versão**: 1.1
 **Data**: 2024-01-05
 **Mantido por**: Equipe de Desenvolvimento
 **Status**: Ativo
+
+## 🔄 Últimas Mudanças (v1.1)
+
+### Novas Seções Adicionadas
+
+1. **Padrões de Nomenclatura de Variáveis (Expandido)**
+   - Guia completo sobre nomes descritivos
+   - Exceções permitidas (parâmetros padrão Go)
+   - Exemplos de correto vs incorreto
+   - Regras específicas por contexto
+
+2. **Otimização de Memória: Pré-alocação de Arrays**
+   - Quando e como prealocizar
+   - Variações de uso
+   - Impacto de performance
+   - Casos de uso
+
+### Motivação
+
+Essas mudanças surgiram de melhorias reais implementadas no código do projeto:
+
+- **Variabilidade de Nomes**: A revisão do `main_test.go` revelou variáveis muito descritivas como `responseRecorder`, `logOutput`, `originalLogger` que melhoram muito a legibilidade
+- **Pré-alocação**: Padrão observado em `TestHealthHandlerIsIdempotent` com `var results []map[string]string`
+
+### Conformidade com Projeto
+
+Os padrões agora refletem:
+- Estado atual do código base
+- Boas práticas observadas
+- Performanceáncia de memória
+- Legibilidade (Copilot Instructions)
+
+
