@@ -44,7 +44,7 @@ jobs:
         run: chmod +x release/solarz-api-${{ matrix.goos }}-${{ matrix.goarch }}
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         with:
           name: solarz-api-${{ matrix.goos }}-${{ matrix.goarch }}
           path: release/

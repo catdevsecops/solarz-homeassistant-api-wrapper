@@ -1,3 +1,4 @@
+// Package main is the entry point for the Solarz API server.
 package main
 
 import (
@@ -9,13 +10,13 @@ import (
 	"github.com/catdevsecops/solarz-api/internal/handler"
 )
 
-// ServerConfig contém a configuração do servidor
+// ServerConfig contains the server configuration.
 type ServerConfig struct {
 	Addr    string
 	Handler http.Handler
 }
 
-// startServer inicia o servidor (extraído de main para testabilidade)
+// startServer starts the server (extracted from main for testability).
 func startServer(config ServerConfig) error {
 	server := &http.Server{
 		Addr:         config.Addr,
@@ -34,7 +35,7 @@ func startServer(config ServerConfig) error {
 	return nil
 }
 
-// setupRouter cria e configura o router (extraído de main para testabilidade)
+// setupRouter creates and configures the router (extracted from main for testability).
 func setupRouter() *http.ServeMux {
 	router := http.NewServeMux()
 
@@ -55,7 +56,9 @@ func main() {
 		Handler: router,
 	}
 
-	startServer(config)
+	if err := startServer(config); err != nil {
+		log.Printf("Failed to start server: %v", err)
+	}
 }
 
 func healthHandler(w http.ResponseWriter, _ *http.Request) {

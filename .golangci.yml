@@ -19,7 +19,7 @@ linters:
     - contextcheck # Verifica uso apropriado de context
     # - cyclomatic # Verifica complexidade ciclomática
     - decorder # Verifica ordem de declarações
-    - depguard # Controla dependências
+    # - depguard # Controla dependências
     - dogsled # Detecta argumentos sem nome consecutivos
     - durationcheck # Detecta multiplicações de duration incorretas
     - errchkjson # Detecta erros em json.Marshal
@@ -74,6 +74,8 @@ linters:
 
   disable:
     - gochecknoglobals # Permite variáveis globais
+    - depguard # Internal imports are allowed
+    - funlen # Tests can be longer than 60 lines
 
 issues:
   max-issues-per-linter: 0

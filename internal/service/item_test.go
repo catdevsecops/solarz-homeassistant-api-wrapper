@@ -1,4 +1,4 @@
-package service
+package service_test
 
 import (
 	"encoding/json"
@@ -7,6 +7,34 @@ import (
 	"testing"
 
 	"github.com/catdevsecops/solarz-api/internal/model"
+	"github.com/catdevsecops/solarz-api/internal/service"
+)
+
+const (
+	// Format float test values and expectations
+	posNumber   = "positive number"
+	wholNumber  = "whole number"
+	decNumber   = "decimal number"
+	zeroValue   = "zero"
+	negNumber   = "negative number"
+	largeNumber = "large number"
+
+	posExpected   = "12.60"
+	wholExpected  = "23.00"
+	decExpected   = "75.40"
+	zeroExpected  = "0.00"
+	negExpected   = "-15.55"
+	largeExpected = "1234567.89"
+
+	// Data for API tests
+	dataDate1         = "2026-06-01"
+	dataDate2         = "2026-06-04"
+	dataDate3         = "2026-06-02"
+	userQuantity      = "16.20"
+	dataDenominacao   = "(3633) Clayton - Mogi"
+	invalidJSONData   = "invalid json"
+	invalidURLAddr    = "http://invalid-url-that-does-not-exist:9999"
+	expectString      = "2026-06-04 - (3633) Clayton - Mogi"
 )
 
 func TestFormatFloat(t *testing.T) {
@@ -16,42 +44,42 @@ func TestFormatFloat(t *testing.T) {
 		expected string
 	}{
 		{
-			name:     "positive number",
+			name:     posNumber,
 			input:    12.6,
-			expected: "12.60",
+			expected: posExpected,
 		},
 		{
-			name:     "whole number",
+			name:     wholNumber,
 			input:    23.0,
-			expected: "23.00",
+			expected: wholExpected,
 		},
 		{
-			name:     "decimal number",
+			name:     decNumber,
 			input:    75.4,
-			expected: "75.40",
+			expected: decExpected,
 		},
 		{
-			name:     "zero",
+			name:     zeroValue,
 			input:    0.0,
-			expected: "0.00",
+			expected: zeroExpected,
 		},
 		{
-			name:     "negative number",
+			name:     negNumber,
 			input:    -15.55,
-			expected: "-15.55",
+			expected: negExpected,
 		},
 		{
-			name:     "large number",
+			name:     largeNumber,
 			input:    1234567.89,
-			expected: "1234567.89",
+			expected: largeExpected,
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := formatFloat(tt.input)
-			if result != tt.expected {
-				t.Errorf("formatFloat(%v) = %q, want %q", tt.input, result, tt.expected)
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			result := service.FormatFloat(testCase.input)
+			if result != testCase.expected {
+				t.Errorf("formatFloat(%v) = %q, want %q", testCase.input, result, testCase.expected)
 			}
 		})
 	}
@@ -60,7 +88,7 @@ func TestFormatFloat(t *testing.T) {
 func TestGetData_EmptyEndpoint(t *testing.T) {
 	t.Run("returns empty slice when SOLARZ_ENDPOINT is not set", func(t *testing.T) {
 		t.Setenv("SOLARZ_ENDPOINT", "")
-		result, err := GetData()
+		result, err := service.GetData()
 
 		if err != nil {
 			t.Errorf("GetData() error = %v, want nil", err)
@@ -75,44 +103,46 @@ func TestGetData_EmptyEndpoint(t *testing.T) {
 func TestGetData_ValidAPI(t *testing.T) {
 	t.Run("returns latest item when API returns valid data", func(t *testing.T) {
 		// Mock server
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		apiServer := httptest.NewServer(http.HandlerFunc(func(responseWriter http.ResponseWriter, _ *http.Request) {
 			response := model.SolarzResponse{
 				Dados: []model.DadoGeracao{
 					{
-						Data:        "2026-06-01",
+						Data:        dataDate1,
 						Quantidade:  12.6,
 						Prognostico: 19.79,
 						Manual:      false,
-						UsinaId:     487759,
-						Denominacao: "(3633) Clayton - Mogi",
+						UsinaID:     487759,
+						Denominacao: dataDenominacao,
 					},
 					{
-						Data:        "2026-06-04",
+						Data:        dataDate2,
 						Quantidade:  16.2,
 						Prognostico: 19.79,
 						Manual:      false,
-						UsinaId:     487759,
-						Denominacao: "(3633) Clayton - Mogi",
+						UsinaID:     487759,
+						Denominacao: dataDenominacao,
 					},
 					{
-						Data:        "2026-06-02",
+						Data:        dataDate3,
 						Quantidade:  23.3,
 						Prognostico: 19.79,
 						Manual:      false,
-						UsinaId:     487759,
-						Denominacao: "(3633) Clayton - Mogi",
+						UsinaID:     487759,
+						Denominacao: dataDenominacao,
 					},
 				},
 				TotalGerado:      75.4,
 				TotalPrognostico: 138.53,
 				Desempenho:       54.42,
 			}
-			json.NewEncoder(w).Encode(response)
+			if err := json.NewEncoder(responseWriter).Encode(response); err != nil {
+				t.Logf("failed to encode response: %v", err)
+			}
 		}))
-		defer server.Close()
+		defer apiServer.Close()
 
-		t.Setenv("SOLARZ_ENDPOINT", server.URL)
-		result, err := GetData()
+		t.Setenv("SOLARZ_ENDPOINT", apiServer.URL)
+		result, err := service.GetData()
 
 		if err != nil {
 			t.Errorf("GetData() error = %v, want nil", err)
@@ -122,15 +152,15 @@ func TestGetData_ValidAPI(t *testing.T) {
 			t.Errorf("GetData() returned %d items, want 1", len(result))
 		}
 
-		if result[0].ID != "2026-06-04" {
+		if result[0].ID != dataDate2 {
 			t.Errorf("result[0].ID = %q, want '2026-06-04'", result[0].ID)
 		}
 
-		if result[0].Value != "16.20" {
+		if result[0].Value != userQuantity {
 			t.Errorf("result[0].Value = %q, want '16.20'", result[0].Value)
 		}
 
-		expectedName := "2026-06-04 - (3633) Clayton - Mogi"
+		expectedName := expectString
 		if result[0].Name != expectedName {
 			t.Errorf("result[0].Name = %q, want %q", result[0].Name, expectedName)
 		}
@@ -139,16 +169,18 @@ func TestGetData_ValidAPI(t *testing.T) {
 
 func TestGetData_EmptyData(t *testing.T) {
 	t.Run("returns empty slice when API returns no data", func(t *testing.T) {
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		apiServer := httptest.NewServer(http.HandlerFunc(func(responseWriter http.ResponseWriter, _ *http.Request) {
 			response := model.SolarzResponse{
 				Dados: []model.DadoGeracao{},
 			}
-			json.NewEncoder(w).Encode(response)
+			if err := json.NewEncoder(responseWriter).Encode(response); err != nil {
+				t.Logf("failed to encode response: %v", err)
+			}
 		}))
-		defer server.Close()
+		defer apiServer.Close()
 
-		t.Setenv("SOLARZ_ENDPOINT", server.URL)
-		result, err := GetData()
+		t.Setenv("SOLARZ_ENDPOINT", apiServer.URL)
+		result, err := service.GetData()
 
 		if err != nil {
 			t.Errorf("GetData() error = %v, want nil", err)
@@ -162,14 +194,16 @@ func TestGetData_EmptyData(t *testing.T) {
 
 func TestGetData_InvalidJSON(t *testing.T) {
 	t.Run("returns error when API returns invalid JSON", func(t *testing.T) {
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
-			w.Write([]byte("invalid json"))
+		apiServer := httptest.NewServer(http.HandlerFunc(func(responseWriter http.ResponseWriter, _ *http.Request) {
+			responseWriter.Header().Set("Content-Type", "application/json")
+			if _, err := responseWriter.Write([]byte(invalidJSONData)); err != nil {
+				t.Logf("failed to write response: %v", err)
+			}
 		}))
-		defer server.Close()
+		defer apiServer.Close()
 
-		t.Setenv("SOLARZ_ENDPOINT", server.URL)
-		result, err := GetData()
+		t.Setenv("SOLARZ_ENDPOINT", apiServer.URL)
+		result, err := service.GetData()
 
 		if err == nil {
 			t.Errorf("GetData() error = nil, want error")
@@ -183,8 +217,8 @@ func TestGetData_InvalidJSON(t *testing.T) {
 
 func TestGetData_NetworkError(t *testing.T) {
 	t.Run("returns error when cannot reach API", func(t *testing.T) {
-		t.Setenv("SOLARZ_ENDPOINT", "http://invalid-url-that-does-not-exist:9999")
-		result, err := GetData()
+		t.Setenv("SOLARZ_ENDPOINT", invalidURLAddr)
+		result, err := service.GetData()
 
 		if err == nil {
 			t.Errorf("GetData() error = nil, want error")

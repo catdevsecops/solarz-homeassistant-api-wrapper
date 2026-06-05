@@ -1,50 +1,75 @@
-package model
+package model_test
 
 import (
 	"encoding/json"
 	"testing"
+
+	"github.com/catdevsecops/solarz-api/internal/model"
 )
 
-// TestItem testa a estrutura Item
+const testDescription = "Test description"
+
+const (
+	// Test IDs and names
+	testID      = "test-id"
+	testName    = "Test Name"
+	testValue   = "Test Value"
+
+	// Data values
+	dataDate1     = "2024-01-01"
+	usinaDenom    = "Usina A"
+
+	// Climate
+	climaDesc    = "Sunny"
+	climaCreated = "2024-01-01T10:00:00Z"
+	extIDValue   = "ext-1"
+
+	// Generation
+	genLabel1  = "Generation 1"
+	genLabel2  = "Generation 2"
+	genLabelStr = "Generation"
+)
+
+// TestItem testa a estrutura *model.Item.
 func TestItem(t *testing.T) {
-	item := Item{
-		ID:    "test-id",
-		Name:  "Test Name",
-		Value: "Test Value",
+	item := model.Item{
+		ID:    testID,
+		Name:  testName,
+		Value: testValue,
 	}
 
-	if item.ID != "test-id" {
+	if item.ID != testID {
 		t.Errorf("Expected ID 'test-id', got '%s'", item.ID)
 	}
 
-	if item.Name != "Test Name" {
+	if item.Name != testName {
 		t.Errorf("Expected Name 'Test Name', got '%s'", item.Name)
 	}
 
-	if item.Value != "Test Value" {
+	if item.Value != testValue {
 		t.Errorf("Expected Value 'Test Value', got '%s'", item.Value)
 	}
 }
 
-// TestItemJSON testa a serialização/desserialização JSON do Item
+// TestItemJSON testa a serialização/desserialização JSON do *model.Item.
 func TestItemJSON(t *testing.T) {
-	original := Item{
-		ID:    "test-id",
-		Name:  "Test Name",
-		Value: "Test Value",
+	original := model.Item{
+		ID:    testID,
+		Name:  testName,
+		Value: testValue,
 	}
 
 	// Serializar para JSON
 	jsonData, err := json.Marshal(original)
 	if err != nil {
-		t.Fatalf("Failed to marshal Item: %v", err)
+		t.Fatalf("Failed to marshal *model.Item: %v", err)
 	}
 
 	// Desserializar de volta
-	var deserialized Item
+	var deserialized model.Item
 	err = json.Unmarshal(jsonData, &deserialized)
 	if err != nil {
-		t.Fatalf("Failed to unmarshal Item: %v", err)
+		t.Fatalf("Failed to unmarshal *model.Item: %v", err)
 	}
 
 	if deserialized.ID != original.ID {
@@ -60,9 +85,9 @@ func TestItemJSON(t *testing.T) {
 	}
 }
 
-// TestItemEmptyFields testa Item com campos vazios
+// TestItemEmptyFields testa Item com campos vazios.
 func TestItemEmptyFields(t *testing.T) {
-	item := Item{}
+	item := model.Item{}
 
 	if item.ID != "" {
 		t.Errorf("Expected empty ID, got '%s'", item.ID)
@@ -77,9 +102,9 @@ func TestItemEmptyFields(t *testing.T) {
 	}
 }
 
-// TestErrorResponse testa a estrutura ErrorResponse
+// TestErrorResponse testa a estrutura *model.ErrorResponse.
 func TestErrorResponse(t *testing.T) {
-	errResp := ErrorResponse{
+	errResp := model.ErrorResponse{
 		Error: "Test error message",
 	}
 
@@ -88,21 +113,21 @@ func TestErrorResponse(t *testing.T) {
 	}
 }
 
-// TestErrorResponseJSON testa a serialização/desserialização JSON do ErrorResponse
+// TestErrorResponseJSON testa a serialização/desserialização JSON do *model.ErrorResponse.
 func TestErrorResponseJSON(t *testing.T) {
-	original := ErrorResponse{
+	original := model.ErrorResponse{
 		Error: "Test error message",
 	}
 
 	jsonData, err := json.Marshal(original)
 	if err != nil {
-		t.Fatalf("Failed to marshal ErrorResponse: %v", err)
+		t.Fatalf("Failed to marshal *model.ErrorResponse: %v", err)
 	}
 
-	var deserialized ErrorResponse
+	var deserialized model.ErrorResponse
 	err = json.Unmarshal(jsonData, &deserialized)
 	if err != nil {
-		t.Fatalf("Failed to unmarshal ErrorResponse: %v", err)
+		t.Fatalf("Failed to unmarshal *model.ErrorResponse: %v", err)
 	}
 
 	if deserialized.Error != original.Error {
@@ -110,9 +135,9 @@ func TestErrorResponseJSON(t *testing.T) {
 	}
 }
 
-// TestSolarzResponse testa a estrutura SolarzResponse
+// TestSolarzResponse testa a estrutura *model.SolarzResponse.
 func TestSolarzResponse(t *testing.T) {
-	resp := SolarzResponse{
+	resp := model.SolarzResponse{
 		TotalGerado:      100.5,
 		TotalPrognostico: 95.3,
 		Desempenho:       0.95,
@@ -136,32 +161,32 @@ func TestSolarzResponse(t *testing.T) {
 	}
 }
 
-// TestSolarzResponseWithDados testa SolarzResponse com dados
+// TestSolarzResponseWithDados testa SolarzResponse com dados.
 func TestSolarzResponseWithDados(t *testing.T) {
-	resp := SolarzResponse{
-		Dados: []DadoGeracao{
+	resp := model.SolarzResponse{
+		Dados: []model.DadoGeracao{
 			{
-				Data:        "2024-01-01",
+				Data:        dataDate1,
 				Quantidade:  50.0,
 				Prognostico: 48.0,
-				UsinaId:     1,
+				UsinaID:     1,
 			},
 		},
 		TotalGerado: 50.0,
 	}
 
 	if len(resp.Dados) != 1 {
-		t.Errorf("Expected 1 DadoGeracao, got %d", len(resp.Dados))
+		t.Errorf("Expected 1 *model.DadoGeracao, got %d", len(resp.Dados))
 	}
 
-	if resp.Dados[0].Data != "2024-01-01" {
+	if resp.Dados[0].Data != dataDate1 {
 		t.Errorf("Expected Data '2024-01-01', got '%s'", resp.Dados[0].Data)
 	}
 }
 
-// TestSolarzResponseJSON testa a serialização/desserialização JSON do SolarzResponse
+// TestSolarzResponseJSON testa a serialização/desserialização JSON do *model.SolarzResponse.
 func TestSolarzResponseJSON(t *testing.T) {
-	original := SolarzResponse{
+	original := model.SolarzResponse{
 		TotalGerado:      100.5,
 		TotalPrognostico: 95.3,
 		Desempenho:       0.95,
@@ -170,13 +195,13 @@ func TestSolarzResponseJSON(t *testing.T) {
 
 	jsonData, err := json.Marshal(original)
 	if err != nil {
-		t.Fatalf("Failed to marshal SolarzResponse: %v", err)
+		t.Fatalf("Failed to marshal *model.SolarzResponse: %v", err)
 	}
 
-	var deserialized SolarzResponse
+	var deserialized model.SolarzResponse
 	err = json.Unmarshal(jsonData, &deserialized)
 	if err != nil {
-		t.Fatalf("Failed to unmarshal SolarzResponse: %v", err)
+		t.Fatalf("Failed to unmarshal *model.SolarzResponse: %v", err)
 	}
 
 	if deserialized.TotalGerado != original.TotalGerado {
@@ -188,19 +213,19 @@ func TestSolarzResponseJSON(t *testing.T) {
 	}
 }
 
-// TestDadoGeracao testa a estrutura DadoGeracao
+// TestDadoGeracao testa a estrutura *model.DadoGeracao.
 func TestDadoGeracao(t *testing.T) {
-	dado := DadoGeracao{
-		Data:          "2024-01-01",
+	dado := model.DadoGeracao{
+		Data:          dataDate1,
 		Quantidade:    50.0,
 		Prognostico:   48.0,
 		Manual:        false,
-		UsinaId:       1,
-		Denominacao:   "Usina A",
+		UsinaID:       1,
+		Denominacao:   usinaDenom,
 		PlantShutdown: false,
 	}
 
-	if dado.Data != "2024-01-01" {
+	if dado.Data != dataDate1 {
 		t.Errorf("Expected Data '2024-01-01', got '%s'", dado.Data)
 	}
 
@@ -221,23 +246,23 @@ func TestDadoGeracao(t *testing.T) {
 	}
 }
 
-// TestDadoGeracaoWithGeracoes testa DadoGeracao com detalhes de geração
+// TestDadoGeracaoWithGeracoes testa DadoGeracao com detalhes de geração.
 func TestDadoGeracaoWithGeracoes(t *testing.T) {
 	descricao := "Test generation"
-	dado := DadoGeracao{
-		Data:       "2024-01-01",
+	dado := model.DadoGeracao{
+		Data:       dataDate1,
 		Quantidade: 50.0,
-		Geracoes: []GeracaoDetalhe{
+		Geracoes: []model.GeracaoDetalhe{
 			{
 				Quantidade: 25.0,
-				IdExterno:  "ext-1",
+				IDExterno:  extIDValue,
 				Descricao:  &descricao,
 			},
 		},
 	}
 
 	if len(dado.Geracoes) != 1 {
-		t.Errorf("Expected 1 GeracaoDetalhe, got %d", len(dado.Geracoes))
+		t.Errorf("Expected 1 *model.GeracaoDetalhe, got %d", len(dado.Geracoes))
 	}
 
 	if dado.Geracoes[0].Quantidade != 25.0 {
@@ -249,25 +274,25 @@ func TestDadoGeracaoWithGeracoes(t *testing.T) {
 	}
 }
 
-// TestDadoGeracaoJSON testa a serialização/desserialização JSON do DadoGeracao
+// TestDadoGeracaoJSON testa a serialização/desserialização JSON do *model.DadoGeracao.
 func TestDadoGeracaoJSON(t *testing.T) {
-	original := DadoGeracao{
-		Data:        "2024-01-01",
+	original := model.DadoGeracao{
+		Data:        dataDate1,
 		Quantidade:  50.0,
 		Prognostico: 48.0,
-		UsinaId:     1,
-		Denominacao: "Usina A",
+		UsinaID:     1,
+		Denominacao: usinaDenom,
 	}
 
 	jsonData, err := json.Marshal(original)
 	if err != nil {
-		t.Fatalf("Failed to marshal DadoGeracao: %v", err)
+		t.Fatalf("Failed to marshal *model.DadoGeracao: %v", err)
 	}
 
-	var deserialized DadoGeracao
+	var deserialized model.DadoGeracao
 	err = json.Unmarshal(jsonData, &deserialized)
 	if err != nil {
-		t.Fatalf("Failed to unmarshal DadoGeracao: %v", err)
+		t.Fatalf("Failed to unmarshal *model.DadoGeracao: %v", err)
 	}
 
 	if deserialized.Data != original.Data {
@@ -279,48 +304,48 @@ func TestDadoGeracaoJSON(t *testing.T) {
 	}
 }
 
-// TestInformacaoClima testa a estrutura InformacaoClima
+// TestInformacaoClima testa a estrutura *model.InformacaoClima.
 func TestInformacaoClima(t *testing.T) {
-	clima := InformacaoClima{
-		Id:        1,
-		Descricao: "Sunny",
-		CreatedAt: "2024-01-01T10:00:00Z",
+	clima := model.InformacaoClima{
+		ID:        1,
+		Descricao: climaDesc,
+		CreatedAt: climaCreated,
 	}
 
-	if clima.Id != 1 {
-		t.Errorf("Expected Id 1, got %d", clima.Id)
+	if clima.ID != 1 {
+		t.Errorf("Expected Id 1, got %d", clima.ID)
 	}
 
-	if clima.Descricao != "Sunny" {
+	if clima.Descricao != climaDesc {
 		t.Errorf("Expected Descricao 'Sunny', got '%s'", clima.Descricao)
 	}
 
-	if clima.CreatedAt != "2024-01-01T10:00:00Z" {
+	if clima.CreatedAt != climaCreated {
 		t.Errorf("Expected CreatedAt '2024-01-01T10:00:00Z', got '%s'", clima.CreatedAt)
 	}
 }
 
-// TestInformacaoClimaJSON testa a serialização/desserialização JSON do InformacaoClima
+// TestInformacaoClimaJSON testa a serialização/desserialização JSON do *model.InformacaoClima.
 func TestInformacaoClimaJSON(t *testing.T) {
-	original := InformacaoClima{
-		Id:        1,
-		Descricao: "Sunny",
-		CreatedAt: "2024-01-01T10:00:00Z",
+	original := model.InformacaoClima{
+		ID:        1,
+		Descricao: climaDesc,
+		CreatedAt: climaCreated,
 	}
 
 	jsonData, err := json.Marshal(original)
 	if err != nil {
-		t.Fatalf("Failed to marshal InformacaoClima: %v", err)
+		t.Fatalf("Failed to marshal *model.InformacaoClima: %v", err)
 	}
 
-	var deserialized InformacaoClima
+	var deserialized model.InformacaoClima
 	err = json.Unmarshal(jsonData, &deserialized)
 	if err != nil {
-		t.Fatalf("Failed to unmarshal InformacaoClima: %v", err)
+		t.Fatalf("Failed to unmarshal *model.InformacaoClima: %v", err)
 	}
 
-	if deserialized.Id != original.Id {
-		t.Errorf("Expected Id %d, got %d", original.Id, deserialized.Id)
+	if deserialized.ID != original.ID {
+		t.Errorf("Expected Id %d, got %d", original.ID, deserialized.ID)
 	}
 
 	if deserialized.Descricao != original.Descricao {
@@ -328,19 +353,19 @@ func TestInformacaoClimaJSON(t *testing.T) {
 	}
 }
 
-// TestGeracaoDetalhe testa a estrutura GeracaoDetalhe
+// TestGeracaoDetalhe testa a estrutura *model.GeracaoDetalhe.
 func TestGeracaoDetalhe(t *testing.T) {
-	geracao := GeracaoDetalhe{
+	geracao := model.GeracaoDetalhe{
 		Quantidade: 25.0,
-		IdExterno:  "ext-1",
+		IDExterno:  extIDValue,
 	}
 
 	if geracao.Quantidade != 25.0 {
 		t.Errorf("Expected Quantidade 25.0, got %f", geracao.Quantidade)
 	}
 
-	if geracao.IdExterno != "ext-1" {
-		t.Errorf("Expected IdExterno 'ext-1', got '%s'", geracao.IdExterno)
+	if geracao.IDExterno != extIDValue {
+		t.Errorf("Expected IdExterno 'ext-1', got '%s'", geracao.IDExterno)
 	}
 
 	if geracao.Descricao != nil {
@@ -348,12 +373,12 @@ func TestGeracaoDetalhe(t *testing.T) {
 	}
 }
 
-// TestGeracaoDetalheWithDescricao testa GeracaoDetalhe com descrição
+// TestGeracaoDetalheWithDescricao testa GeracaoDetalhe com descrição.
 func TestGeracaoDetalheWithDescricao(t *testing.T) {
-	descricao := "Test description"
-	geracao := GeracaoDetalhe{
+	descricao := testDescription
+	geracao := model.GeracaoDetalhe{
 		Quantidade: 25.0,
-		IdExterno:  "ext-1",
+		IDExterno:  extIDValue,
 		Descricao:  &descricao,
 	}
 
@@ -361,48 +386,48 @@ func TestGeracaoDetalheWithDescricao(t *testing.T) {
 		t.Error("Expected Descricao to not be nil")
 	}
 
-	if *geracao.Descricao != "Test description" {
+	if *geracao.Descricao != testDescription {
 		t.Errorf("Expected Descricao 'Test description', got '%s'", *geracao.Descricao)
 	}
 }
 
-// TestGeracaoDetalheJSON testa a serialização/desserialização JSON do GeracaoDetalhe
+// TestGeracaoDetalheJSON testa a serialização/desserialização JSON do *model.GeracaoDetalhe.
 func TestGeracaoDetalheJSON(t *testing.T) {
-	descricao := "Test description"
-	original := GeracaoDetalhe{
+	descricao := testDescription
+	original := model.GeracaoDetalhe{
 		Quantidade: 25.0,
-		IdExterno:  "ext-1",
+		IDExterno:  extIDValue,
 		Descricao:  &descricao,
 	}
 
 	jsonData, err := json.Marshal(original)
 	if err != nil {
-		t.Fatalf("Failed to marshal GeracaoDetalhe: %v", err)
+		t.Fatalf("Failed to marshal *model.GeracaoDetalhe: %v", err)
 	}
 
-	var deserialized GeracaoDetalhe
+	var deserialized model.GeracaoDetalhe
 	err = json.Unmarshal(jsonData, &deserialized)
 	if err != nil {
-		t.Fatalf("Failed to unmarshal GeracaoDetalhe: %v", err)
+		t.Fatalf("Failed to unmarshal *model.GeracaoDetalhe: %v", err)
 	}
 
 	if deserialized.Quantidade != original.Quantidade {
 		t.Errorf("Expected Quantidade %f, got %f", original.Quantidade, deserialized.Quantidade)
 	}
 
-	if deserialized.IdExterno != original.IdExterno {
-		t.Errorf("Expected IdExterno '%s', got '%s'", original.IdExterno, deserialized.IdExterno)
+	if deserialized.IDExterno != original.IDExterno {
+		t.Errorf("Expected IdExterno '%s', got '%s'", original.IDExterno, deserialized.IDExterno)
 	}
 }
 
-// TestLabelValue testa a estrutura LabelValue
+// TestLabelValue testa a estrutura *model.LabelValue.
 func TestLabelValue(t *testing.T) {
-	label := LabelValue{
-		Label: "Generation",
+	label := model.LabelValue{
+		Label: genLabelStr,
 		Value: 100.5,
 	}
 
-	if label.Label != "Generation" {
+	if label.Label != genLabelStr {
 		t.Errorf("Expected Label 'Generation', got '%s'", label.Label)
 	}
 
@@ -411,22 +436,22 @@ func TestLabelValue(t *testing.T) {
 	}
 }
 
-// TestLabelValueJSON testa a serialização/desserialização JSON do LabelValue
+// TestLabelValueJSON testa a serialização/desserialização JSON do *model.LabelValue.
 func TestLabelValueJSON(t *testing.T) {
-	original := LabelValue{
-		Label: "Generation",
+	original := model.LabelValue{
+		Label: genLabelStr,
 		Value: 100.5,
 	}
 
 	jsonData, err := json.Marshal(original)
 	if err != nil {
-		t.Fatalf("Failed to marshal LabelValue: %v", err)
+		t.Fatalf("Failed to marshal *model.LabelValue: %v", err)
 	}
 
-	var deserialized LabelValue
+	var deserialized model.LabelValue
 	err = json.Unmarshal(jsonData, &deserialized)
 	if err != nil {
-		t.Fatalf("Failed to unmarshal LabelValue: %v", err)
+		t.Fatalf("Failed to unmarshal *model.LabelValue: %v", err)
 	}
 
 	if deserialized.Label != original.Label {
@@ -438,12 +463,12 @@ func TestLabelValueJSON(t *testing.T) {
 	}
 }
 
-// TestSolarzResponseWithLabeledGenerations testa SolarzResponse com geração rotulada
+// TestSolarzResponseWithLabeledGenerations testa SolarzResponse com geração rotulada.
 func TestSolarzResponseWithLabeledGenerations(t *testing.T) {
-	resp := SolarzResponse{
-		LabeledGenerations: map[string]LabelValue{
-			"gen1": {Label: "Generation 1", Value: 50.0},
-			"gen2": {Label: "Generation 2", Value: 45.5},
+	resp := model.SolarzResponse{
+		LabeledGenerations: map[string]model.LabelValue{
+			"gen1": {Label: genLabel1, Value: 50.0},
+			"gen2": {Label: genLabel2, Value: 45.5},
 		},
 	}
 
@@ -461,9 +486,9 @@ func TestSolarzResponseWithLabeledGenerations(t *testing.T) {
 	}
 }
 
-// TestSolarzResponseWithPrognosticos testa SolarzResponse com prognósticos
+// TestSolarzResponseWithPrognosticos testa SolarzResponse com prognósticos.
 func TestSolarzResponseWithPrognosticos(t *testing.T) {
-	resp := SolarzResponse{
+	resp := model.SolarzResponse{
 		Prognosticos: map[string]float64{
 			"jan": 100.0,
 			"fev": 95.5,
@@ -484,27 +509,27 @@ func TestSolarzResponseWithPrognosticos(t *testing.T) {
 	}
 }
 
-// TestComplexSolarzResponseJSON testa a serialização/desserialização JSON de uma SolarzResponse complexa
+// TestComplexSolarzResponseJSON testa a serialização/desserialização JSON de uma *model.SolarzResponse complexa.
 func TestComplexSolarzResponseJSON(t *testing.T) {
-	descricao := "Test description"
-	original := SolarzResponse{
-		Dados: []DadoGeracao{
+	descricao := testDescription
+	original := model.SolarzResponse{
+		Dados: []model.DadoGeracao{
 			{
-				Data:        "2024-01-01",
+				Data:        dataDate1,
 				Quantidade:  50.0,
 				Prognostico: 48.0,
-				InformacaoClima: InformacaoClima{
-					Id:        1,
-					Descricao: "Sunny",
-					CreatedAt: "2024-01-01T10:00:00Z",
+				InformacaoClima: model.InformacaoClima{
+					ID:        1,
+					Descricao: climaDesc,
+					CreatedAt: climaCreated,
 				},
 				Manual:      false,
-				UsinaId:     1,
-				Denominacao: "Usina A",
-				Geracoes: []GeracaoDetalhe{
+				UsinaID:     1,
+				Denominacao: usinaDenom,
+				Geracoes: []model.GeracaoDetalhe{
 					{
 						Quantidade: 25.0,
-						IdExterno:  "ext-1",
+						IDExterno:  extIDValue,
 						Descricao:  &descricao,
 					},
 				},
@@ -514,8 +539,8 @@ func TestComplexSolarzResponseJSON(t *testing.T) {
 		TotalGerado:      50.0,
 		TotalPrognostico: 48.0,
 		Desempenho:       0.96,
-		LabeledGenerations: map[string]LabelValue{
-			"gen1": {Label: "Generation 1", Value: 50.0},
+		LabeledGenerations: map[string]model.LabelValue{
+			"gen1": {Label: genLabel1, Value: 50.0},
 		},
 		Prognosticos: map[string]float64{
 			"jan": 100.0,
@@ -525,20 +550,20 @@ func TestComplexSolarzResponseJSON(t *testing.T) {
 
 	jsonData, err := json.Marshal(original)
 	if err != nil {
-		t.Fatalf("Failed to marshal complex SolarzResponse: %v", err)
+		t.Fatalf("Failed to marshal complex *model.SolarzResponse: %v", err)
 	}
 
-	var deserialized SolarzResponse
+	var deserialized model.SolarzResponse
 	err = json.Unmarshal(jsonData, &deserialized)
 	if err != nil {
-		t.Fatalf("Failed to unmarshal complex SolarzResponse: %v", err)
+		t.Fatalf("Failed to unmarshal complex *model.SolarzResponse: %v", err)
 	}
 
 	if len(deserialized.Dados) != 1 {
-		t.Errorf("Expected 1 DadoGeracao, got %d", len(deserialized.Dados))
+		t.Errorf("Expected 1 *model.DadoGeracao, got %d", len(deserialized.Dados))
 	}
 
-	if deserialized.Dados[0].Denominacao != "Usina A" {
+	if deserialized.Dados[0].Denominacao != usinaDenom {
 		t.Errorf("Expected Denominacao 'Usina A', got '%s'", deserialized.Dados[0].Denominacao)
 	}
 
@@ -547,15 +572,15 @@ func TestComplexSolarzResponseJSON(t *testing.T) {
 	}
 }
 
-// TestItemIsValid testa o método IsValid de Item
+// TestItemIsValid testa o método IsValid de *model.Item.
 func TestItemIsValid(t *testing.T) {
 	tests := []struct {
 		name     string
-		item     *Item
+		item     *model.Item
 		expected bool
 	}{
-		{"Valid item", &Item{ID: "123", Name: "Test"}, true},
-		{"Item with empty ID", &Item{ID: "", Name: "Test"}, false},
+		{"Valid item", &model.Item{ID: "123", Name: "Test"}, true},
+		{"Item with empty ID", &model.Item{ID: "", Name: "Test"}, false},
 		{"Nil item", nil, false},
 	}
 
@@ -569,19 +594,19 @@ func TestItemIsValid(t *testing.T) {
 	}
 }
 
-// TestItemIsEmpty testa o método IsEmpty de Item
+// TestItemIsEmpty testa o método IsEmpty de *model.Item.
 func TestItemIsEmpty(t *testing.T) {
 	tests := []struct {
 		name     string
-		item     *Item
+		item     *model.Item
 		expected bool
 	}{
-		{"Empty item", &Item{}, true},
-		{"Item with ID", &Item{ID: "123"}, false},
-		{"Item with Name", &Item{Name: "Test"}, false},
-		{"Item with Value", &Item{Value: "Value"}, false},
+		{"Empty item", &model.Item{}, true},
+		{"Item with ID", &model.Item{ID: "123"}, false},
+		{"Item with Name", &model.Item{Name: "Test"}, false},
+		{"Item with Value", &model.Item{Value: "Value"}, false},
 		{"Nil item", nil, true},
-		{"Complete item", &Item{ID: "123", Name: "Test", Value: "Value"}, false},
+		{"Complete item", &model.Item{ID: "123", Name: "Test", Value: "Value"}, false},
 	}
 
 	for _, tt := range tests {
@@ -594,15 +619,15 @@ func TestItemIsEmpty(t *testing.T) {
 	}
 }
 
-// TestErrorResponseHasError testa o método HasError de ErrorResponse
+// TestErrorResponseHasError testa o método HasError de *model.ErrorResponse.
 func TestErrorResponseHasError(t *testing.T) {
 	tests := []struct {
 		name     string
-		errResp  *ErrorResponse
+		errResp  *model.ErrorResponse
 		expected bool
 	}{
-		{"With error message", &ErrorResponse{Error: "Something went wrong"}, true},
-		{"With empty error", &ErrorResponse{Error: ""}, false},
+		{"With error message", &model.ErrorResponse{Error: "Something went wrong"}, true},
+		{"With empty error", &model.ErrorResponse{Error: ""}, false},
 		{"Nil error response", nil, false},
 	}
 
@@ -616,16 +641,17 @@ func TestErrorResponseHasError(t *testing.T) {
 	}
 }
 
-// TestSolarzResponseGetTotalDados testa o método GetTotalDados
+// TestSolarzResponseGetTotalDados testa o método GetTotalDados.
 func TestSolarzResponseGetTotalDados(t *testing.T) {
 	tests := []struct {
 		name     string
-		resp     *SolarzResponse
+		resp     *model.SolarzResponse
 		expected int
 	}{
-		{"With one dato", &SolarzResponse{Dados: []DadoGeracao{{Data: "2024-01-01"}}}, 1},
-		{"With multiple dados", &SolarzResponse{Dados: []DadoGeracao{{Data: "2024-01-01"}, {Data: "2024-01-02"}, {Data: "2024-01-03"}}}, 3},
-		{"With no dados", &SolarzResponse{Dados: []DadoGeracao{}}, 0},
+		{"With one dato", &model.SolarzResponse{Dados: []model.DadoGeracao{{Data: dataDate1}}}, 1},
+		{"With multiple dados", &model.SolarzResponse{Dados: []model.DadoGeracao{
+			{Data: dataDate1}, {Data: "2024-01-02"}, {Data: "2024-01-03"}}}, 3},
+		{"With no dados", &model.SolarzResponse{Dados: []model.DadoGeracao{}}, 0},
 		{"Nil response", nil, 0},
 	}
 
@@ -639,17 +665,17 @@ func TestSolarzResponseGetTotalDados(t *testing.T) {
 	}
 }
 
-// TestDadoGeracaoCalculateDesempenho testa o método CalculateDesempenho
+// TestDadoGeracaoCalculateDesempenho testa o método CalculateDesempenho.
 func TestDadoGeracaoCalculateDesempenho(t *testing.T) {
 	tests := []struct {
 		name     string
-		dado     *DadoGeracao
+		dado     *model.DadoGeracao
 		expected float64
 	}{
-		{"Normal calculation", &DadoGeracao{Quantidade: 100, Prognostico: 100}, 1.0},
-		{"Above prognosis", &DadoGeracao{Quantidade: 120, Prognostico: 100}, 1.2},
-		{"Below prognosis", &DadoGeracao{Quantidade: 80, Prognostico: 100}, 0.8},
-		{"Zero prognosis", &DadoGeracao{Quantidade: 100, Prognostico: 0}, 0},
+		{"Normal calculation", &model.DadoGeracao{Quantidade: 100, Prognostico: 100}, 1.0},
+		{"Above prognosis", &model.DadoGeracao{Quantidade: 120, Prognostico: 100}, 1.2},
+		{"Below prognosis", &model.DadoGeracao{Quantidade: 80, Prognostico: 100}, 0.8},
+		{"Zero prognosis", &model.DadoGeracao{Quantidade: 100, Prognostico: 0}, 0},
 		{"Nil dado", nil, 0},
 	}
 
@@ -663,15 +689,15 @@ func TestDadoGeracaoCalculateDesempenho(t *testing.T) {
 	}
 }
 
-// TestDadoGeracaoIsManualEntry testa o método IsManualEntry
+// TestDadoGeracaoIsManualEntry testa o método IsManualEntry.
 func TestDadoGeracaoIsManualEntry(t *testing.T) {
 	tests := []struct {
 		name     string
-		dado     *DadoGeracao
+		dado     *model.DadoGeracao
 		expected bool
 	}{
-		{"Manual entry", &DadoGeracao{Manual: true}, true},
-		{"Automatic entry", &DadoGeracao{Manual: false}, false},
+		{"Manual entry", &model.DadoGeracao{Manual: true}, true},
+		{"Automatic entry", &model.DadoGeracao{Manual: false}, false},
 		{"Nil dado", nil, false},
 	}
 
@@ -685,18 +711,18 @@ func TestDadoGeracaoIsManualEntry(t *testing.T) {
 	}
 }
 
-// TestGeracaoDetalheHasDescription testa o método HasDescription
+// TestGeracaoDetalheHasDescription testa o método HasDescription.
 func TestGeracaoDetalheHasDescription(t *testing.T) {
-	descricaoNaoVazia := "Test description"
+	descricaoNaoVazia := testDescription
 	descricaoVazia := ""
 	tests := []struct {
 		name     string
-		geracao  *GeracaoDetalhe
+		geracao  *model.GeracaoDetalhe
 		expected bool
 	}{
-		{"With description", &GeracaoDetalhe{Descricao: &descricaoNaoVazia}, true},
-		{"With empty description", &GeracaoDetalhe{Descricao: &descricaoVazia}, false},
-		{"Without description", &GeracaoDetalhe{}, false},
+		{"With description", &model.GeracaoDetalhe{Descricao: &descricaoNaoVazia}, true},
+		{"With empty description", &model.GeracaoDetalhe{Descricao: &descricaoVazia}, false},
+		{"Without description", &model.GeracaoDetalhe{}, false},
 		{"Nil geracao", nil, false},
 	}
 
@@ -710,15 +736,15 @@ func TestGeracaoDetalheHasDescription(t *testing.T) {
 	}
 }
 
-// TestLabelValueIsValid testa o método IsValid de LabelValue
+// TestLabelValueIsValid testa o método IsValid de *model.LabelValue.
 func TestLabelValueIsValid(t *testing.T) {
 	tests := []struct {
 		name     string
-		label    *LabelValue
+		label    *model.LabelValue
 		expected bool
 	}{
-		{"Valid label", &LabelValue{Label: "Generation", Value: 100.5}, true},
-		{"With empty label", &LabelValue{Label: "", Value: 100.5}, false},
+		{"Valid label", &model.LabelValue{Label: genLabelStr, Value: 100.5}, true},
+		{"With empty label", &model.LabelValue{Label: "", Value: 100.5}, false},
 		{"Nil label", nil, false},
 	}
 
