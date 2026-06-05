@@ -1,0 +1,556 @@
+// .copilot-instructions
+// Instruções para GitHub Copilot - Padrões e Estilo do Projeto
+
+// VISÃO GERAL DO PROJETO
+// - Solarz API: API REST em Go para gerenciamento de dados de geração solar
+// - Arquitetura: Camadas (Handler → Service → Model)
+// - Testes: 100+ testes com ~81% cobertura média
+// - Standards: Go 1.21+, Padrões nativos, Sem dependências externas
+
+// ============================================================================
+// 1. ESTRUTURA DO PROJETO
+// ============================================================================
+
+// Diretório: internal/
+//   - handler/      → HTTP request handlers
+//   - model/        → Data structures e validações
+//   - service/      → Business logic
+
+// Convenção: Código privado em internal/, nunca exportar para fora do módulo
+
+// ============================================================================
+// 2. PADRÕES DE NOMES E NOMENCLATURA
+// ============================================================================
+
+// VARIÁVEIS E CONSTANTES
+✅ CORRETO:
+  - w, r para http.ResponseWriter e *http.Request
+  - err para erros
+  - ctx para context.Context
+  - config para configurações
+  - router para *http.ServeMux
+  - req para *http.Request
+
+❌ INCORRETO:
+  - response_writer (use w)
+  - request (use r)
+  - error_value (use err)
+  - cfg (use config)
+
+// FUNÇÕES
+✅ CORRETO:
+  - func GetData(w http.ResponseWriter, r *http.Request)
+  - func setupRouter() *http.ServeMux
+  - func startServer(config ServerConfig) error
+  - func (i *Item) IsValid() bool
+
+❌ INCORRETO:
+  - func getdata()
+  - func Setup_Router()
+  - func StartServer()
+  - func (i *Item) isValid()
+
+// STRUCTS
+✅ CORRETO:
+  - type ServerConfig struct
+  - type SolarzResponse struct
+  - type DadoGeracao struct
+
+❌ INCORRETO:
+  - type serverConfig struct
+  - type solarzResponse struct
+  - type dadoGeracao struct
+
+// MÉTODOS
+✅ CORRETO:
+  - (i *Item) IsValid() bool
+  - (sr *SolarzResponse) GetTotalDados() int
+  - (dg *DadoGeracao) CalculateDesempenho() float64
+
+❌ INCORRETO:
+  - (i *Item) isValid() bool
+  - (sr *SolarzResponse) getTotalDados() int
+  - (dg *DadoGeracao) calculateDesempenho() float64
+
+// ============================================================================
+// 3. PADRÕES DE CÓDIGO
+// ============================================================================
+
+// HANDLER FUNCTIONS
+✅ PADRÃO:
+func healthHandler(w http.ResponseWriter, _ *http.Request) {
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusOK)
+    if err := json.NewEncoder(w).Encode(map[string]string{"status": "ok"}); err != nil {
+        log.Printf("Failed to encode response: %v", err)
+    }
+}
+
+// KEY POINTS:
+// 1. Sempre usar (w http.ResponseWriter, r *http.Request) como parâmetros
+// 2. Ignorar request parameter com _ se não usado
+// 3. Sempre setar Content-Type antes de WriteHeader
+// 4. Sempre fazer WriteHeader explicitamente
+// 5. Usar json.NewEncoder para streaming
+// 6. Fazer log de erros com log.Printf (nunca panic)
+// 7. Nunca retornar erro diretamente (já está no response)
+
+// STRUCT METHODS - VALIDAÇÃO
+✅ PADRÃO:
+func (i *Item) IsValid() bool {
+    return i != nil && i.ID != ""
+}
+
+func (e *ErrorResponse) HasError() bool {
+    return e != nil && e.Error != ""
+}
+
+// KEY POINTS:
+// 1. Sempre começar com verificação de nil
+// 2. Nome: Is*, Has*, Get*, Calculate*
+// 3. Retornar bool ou simples valores
+// 4. Sem side effects
+// 5. Métodos receptores são pointers (*Type)
+
+// ERROR HANDLING
+✅ PADRÃO:
+if err := someFunction(); err != nil {
+    w.WriteHeader(http.StatusInternalServerError)
+    if encErr := json.NewEncoder(w).Encode(model.ErrorResponse{Error: "message"}); encErr != nil {
+        log.Printf("ERROR: %v", err)
+    }
+    return
+}
+
+// KEY POINTS:
+// 1. Sempre verificar err != nil
+// 2. Retornar após erro (não continuar)
+// 3. Usar model.ErrorResponse para respostas de erro
+// 4. Fazer log de erros importantes
+// 5. Usar status codes apropriados (500, 400, etc)
+
+// ============================================================================
+// 4. PADRÕES DE TESTES
+// ============================================================================
+
+// TESTE BÁSICO
+✅ PADRÃO:
+func TestHealthHandlerSuccess(t *testing.T) {
+    req := httptest.NewRequest("GET", "/health", nil)
+    w := httptest.NewRecorder()
+
+    healthHandler(w, req)
+
+    if w.Code != http.StatusOK {
+        t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
+    }
+}
+
+// KEY POINTS:
+// 1. Nomear: Test<ComponentName><Scenario>
+// 2. Usar httptest.NewRequest e httptest.NewRecorder
+// 3. Comparar com constantes esperadas
+// 4. Usar t.Errorf com mensagem clara
+// 5. Um aspecto por teste (single responsibility)
+
+// TABLE-DRIVEN TESTS
+✅ PADRÃO:
+func TestSetupRouterWithDifferentMethods(t *testing.T) {
+    tests := []struct {
+        name   string
+        method string
+    }{
+        {"GET request", "GET"},
+        {"POST request", "POST"},
+    }
+
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            req := httptest.NewRequest(tt.method, "/health", nil)
+            w := httptest.NewRecorder()
+            
+            router.ServeHTTP(w, req)
+            
+            if w.Code != http.StatusOK {
+                t.Errorf("expected %d, got %d", http.StatusOK, w.Code)
+            }
+        })
+    }
+}
+
+// KEY POINTS:
+// 1. Usar struct anônima com casos de teste
+// 2. Loop com range e t.Run para cada caso
+// 3. Cada caso é isolado
+// 4. Nomes descritivos em tt.name
+// 5. Mensagens de erro com contexto
+
+// LOG CAPTURING
+✅ PADRÃO:
+func captureLogOutput(fn func()) string {
+    var buf bytes.Buffer
+    
+    originalLogger := log.Writer()
+    originalFlags := log.Flags()
+    originalPrefix := log.Prefix()
+    
+    log.SetOutput(&buf)
+    log.SetFlags(log.LstdFlags)
+    
+    fn()
+    
+    log.SetOutput(originalLogger)
+    log.SetFlags(originalFlags)
+    log.SetPrefix(originalPrefix)
+    
+    return buf.String()
+}
+
+// KEY POINTS:
+// 1. Salvar estado original antes de alterar
+// 2. Restaurar sempre após teste
+// 3. Usar bytes.Buffer para capturar
+// 4. Retornar string para validação
+
+// ============================================================================
+// 5. PADRÕES DE DESIGN
+// ============================================================================
+
+// DEPENDENCY INJECTION
+✅ PADRÃO:
+type ServerConfig struct {
+    Addr    string
+    Handler http.Handler
+}
+
+func startServer(config ServerConfig) error {
+    server := &http.Server{
+        Addr:    config.Addr,
+        Handler: config.Handler,
+    }
+    return server.ListenAndServe()
+}
+
+// KEY POINTS:
+// 1. Usar struct para agrupar configurações
+// 2. Passar como parâmetro, não usar globais
+// 3. Facilita testes
+// 4. Facilita reuso
+
+// FACTORY PATTERN
+✅ PADRÃO:
+func setupRouter() *http.ServeMux {
+    router := http.NewServeMux()
+    router.HandleFunc("GET /api/v1/data", handler.GetData)
+    router.HandleFunc("GET /health", healthHandler)
+    return router
+}
+
+// KEY POINTS:
+// 1. Função que retorna objeto configurado
+// 2. Encapsula lógica de criação
+// 3. Facilita testes
+// 4. Facilita modificações futuras
+
+// ============================================================================
+// 6. DOCUMENTAÇÃO E COMENTÁRIOS
+// ============================================================================
+
+// ARQUIVO COMMENTS (no início do arquivo)
+✅ PADRÃO:
+package main
+
+import (...)
+
+// startServer inicia o servidor HTTP com a configuração fornecida
+func startServer(config ServerConfig) error {
+    // ...
+}
+
+// KEY POINTS:
+// 1. Começar com o nome da função/struct
+// 2. Breve descrição em português (por enquanto)
+// 3. Explicar "o quê", não "como"
+// 4. Uma linha se possível
+
+// FUNCTION COMMENTS
+✅ PADRÃO:
+// GetData retorna dados de geração solar da API Solarz
+func GetData(w http.ResponseWriter, r *http.Request) {
+    // ...
+}
+
+// KEY POINTS:
+// 1. Comentar funções públicas
+// 2. Começar com o nome da função
+// 3. Explicar propósito
+// 4. Explicar retorno se não óbvio
+
+// INLINE COMMENTS (raro, apenas para lógica complexa)
+✅ PADRÃO:
+// Restaura o logger original para não afetar outros testes
+log.SetOutput(originalLogger)
+
+// KEY POINTS:
+// 1. Explicar "por quê", não "o quê"
+// 2. Apenas para lógica não óbvia
+// 3. Evitar ao máximo (código deveria ser auto-explicativo)
+
+// ============================================================================
+// 7. FORMATAÇÃO DE CÓDIGO
+// ============================================================================
+
+// INDENTAÇÃO
+✅ PADRÃO:
+- Usar tabs (não espaços)
+- 1 nível = 1 tab
+- Máximo de 120 caracteres por linha (preferência)
+
+// ESPAÇAMENTO
+✅ PADRÃO:
+- Linha em branco entre funções
+- Linha em branco entre grupos lógicos
+- Sem linhas em branco excessivas
+
+// QUEBRA DE LINHAS
+✅ PADRÃO para funções longas:
+func complexFunction(
+    param1 string,
+    param2 int,
+    param3 bool,
+) error {
+    // implementação
+}
+
+// ============================================================================
+// 8. IMPORTS
+// ============================================================================
+
+✅ PADRÃO:
+import (
+    "bytes"
+    "context"
+    "encoding/json"
+    "log"
+    "net/http"
+    
+    "github.com/catdevsecops/solarz-api/internal/handler"
+)
+
+// KEY POINTS:
+// 1. Agrupar: stdlib, depois dependências externas
+// 2. Separar com linha em branco
+// 3. Ordem alfabética dentro de cada grupo
+// 4. Usar gofmt (automático)
+
+// ============================================================================
+// 9. TIPOS E STRUCTS
+// ============================================================================
+
+// DEFINIÇÃO DE STRUCTS
+✅ PADRÃO:
+type Item struct {
+    ID    string `json:"id"`
+    Name  string `json:"name"`
+    Value string `json:"value"`
+}
+
+// KEY POINTS:
+// 1. Tags JSON obrigatórias em structs
+// 2. Maiúsculas para campos (exportados)
+// 3. Comentários documentando struct
+// 4. Organizar campos por relacionamento
+
+// MÉTODOS EM STRUCTS
+✅ PADRÃO:
+func (i *Item) IsValid() bool {
+    return i != nil && i.ID != ""
+}
+
+// KEY POINTS:
+// 1. Receptor deve ser pointer (*Type)
+// 2. Começar com verbo: Is*, Has*, Get*, Calculate*
+// 3. Retornar tipos simples (bool, int, string)
+// 4. Sem side effects
+
+// ============================================================================
+// 10. CONSTANTES E VARIÁVEIS GLOBAIS
+// ============================================================================
+
+// ❌ EVITAR variáveis globais
+// ✅ USAR constantes quando necessário
+
+✅ PADRÃO:
+const (
+    DefaultAddr    = ":8080"
+    ReadTimeout    = 15 * time.Second
+    WriteTimeout   = 15 * time.Second
+)
+
+// KEY POINTS:
+// 1. Usar UPPER_CASE para constantes
+// 2. Agrupar relacionadas
+// 3. Comentar se não óbvio
+// 4. Evitar variáveis globais
+
+// ============================================================================
+// 11. ERROR HANDLING
+// ============================================================================
+
+// RETORNO DE ERROS
+✅ PADRÃO:
+func someFunction() (result interface{}, err error) {
+    if err := doSomething(); err != nil {
+        return nil, err
+    }
+    return data, nil
+}
+
+// KEY POINTS:
+// 1. Sempre retornar error como último return
+// 2. Nomear erro como "err"
+// 3. Nunca swallow errors (sempre verificar)
+// 4. Fazer log antes de retornar (se apropriado)
+
+// ============================================================================
+// 12. LOGGING
+// ============================================================================
+
+✅ PADRÃO:
+log.Printf("Server starting on %s", server.Addr)
+log.Printf("Failed to encode response: %v", err)
+
+// KEY POINTS:
+// 1. Usar log.Printf para mensagens
+// 2. Incluir contexto relevante
+// 3. Usar %v para erros
+// 4. Nunca usar log.Fatalf em handlers (usar em main)
+
+// ============================================================================
+// 13. HTTP SPECIFICS
+// ============================================================================
+
+// STATUS CODES
+✅ CORRETO:
+- http.StatusOK (200)
+- http.StatusCreated (201)
+- http.StatusBadRequest (400)
+- http.StatusNotFound (404)
+- http.StatusInternalServerError (500)
+
+// HEADERS
+✅ CORRETO:
+w.Header().Set("Content-Type", "application/json")
+
+// KEY POINTS:
+// 1. Sempre setar Content-Type
+// 2. Setar headers antes de WriteHeader
+// 3. WriteHeader é explícito
+
+// JSON ENCODING
+✅ PADRÃO:
+if err := json.NewEncoder(w).Encode(data); err != nil {
+    log.Printf("Failed to encode: %v", err)
+}
+
+// KEY POINTS:
+// 1. Usar json.NewEncoder para streaming
+// 2. Não usar json.Marshal para responses
+// 3. Sempre verificar erro
+
+// ============================================================================
+// 14. TESTES - COBERTURA MÍNIMA
+// ============================================================================
+
+COBERTURA ESPERADA:
+- Models: 100%
+- Handlers: 80%+
+- Service: 95%+
+- Main: 50%+
+
+TIPOS DE TESTES OBRIGATÓRIOS:
+- ✅ Unit tests
+- ✅ Integration tests
+- ✅ Concurrency tests (onde aplicável)
+- ✅ Error cases
+- ✅ Edge cases
+
+RODAR TESTES:
+go test -v              # Verbose
+go test -cover          # Com cobertura
+go test -race           # Com race detector
+go test -bench=.        # Benchmarks
+
+// ============================================================================
+// 15. CHECKLIST ANTES DE COMMIT
+// ============================================================================
+
+[ ] Código segue padrões de nomenclatura
+[ ] Funções têm comentários descritivos
+[ ] Todas as rotas são testadas
+[ ] Cobertura de testes >= padrão
+[ ] Não há variáveis globais
+[ ] Erro handling está correto
+[ ] Logging está apropriado
+[ ] Sem dependências externas desnecessárias
+[ ] Formatação está correta (gofmt)
+[ ] Testes passam (go test -v)
+[ ] Sem race conditions (go test -race)
+
+// ============================================================================
+// 16. COMANDOS ÚTEIS
+// ============================================================================
+
+// Formatar código
+gofmt -w .
+
+// Verificar problemas
+go vet ./...
+
+// Rodar testes
+go test -v
+
+// Rodar com cobertura
+go test -cover
+
+// Detectar race conditions
+go test -race
+
+// Rodar benchmarks
+go test -bench=. -benchmem
+
+// Documentação local
+go doc <package>
+
+// ============================================================================
+// 17. REFERÊNCIAS IMPORTANTES
+// ============================================================================
+
+// Go Code Review Comments:
+// https://golang.org/doc/effective_go
+
+// Go Best Practices:
+// https://golang.org/wiki/CodeReviewComments
+
+// Padrões HTTP em Go:
+// https://golang.org/pkg/net/http/
+
+// Testing em Go:
+// https://golang.org/pkg/testing/
+
+// ============================================================================
+// RESUMO FINAL
+// ============================================================================
+
+ESTILO DO PROJETO:
+✅ Go idiomático
+✅ Sem dependências externas
+✅ Camadas bem definidas
+✅ Testes abrangentes
+✅ Documentação clara
+✅ Padrões de design aplicados
+✅ Error handling explícito
+✅ Logging apropriado
+✅ Código auto-explicativo
+
+MANTER ISSO EM TODAS AS CONTRIBUIÇÕES!

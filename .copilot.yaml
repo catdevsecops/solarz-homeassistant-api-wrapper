@@ -1,0 +1,167 @@
+# .copilot.yaml
+# Configuração YAML para GitHub Copilot
+
+project:
+  name: Solarz API
+  description: API REST para gerenciamento de dados de geração solar
+  language: go
+  version: "1.21+"
+  status: production-ready
+
+standards:
+  code_style: go-idiomatic
+  testing_framework: testing (stdlib)
+  test_coverage_minimum: 80
+  external_dependencies: none
+
+naming_conventions:
+  variables:
+    http_response: "w"
+    http_request: "r"
+    error: "err"
+    context: "ctx"
+    config: "config"
+    router: "router"
+    
+  functions:
+    format: CamelCase
+    handlers: "<VerbNoun>(w http.ResponseWriter, r *http.Request)"
+    methods: "<IsHasGetCalculate>..."
+    private: starts_with_lowercase
+    public: starts_with_UPPERCASE
+
+  structs:
+    format: PascalCase
+    receiver_style: pointer (*Type)
+    json_tags: required
+
+directory_structure:
+  main: main.go
+  tests: "*_test.go"
+  internal:
+    handler: internal/handler/
+    model: internal/model/
+    service: internal/service/
+  private_package: yes (use internal/)
+
+testing:
+  minimum_coverage: 80%
+  required_types:
+    - unit_tests
+    - integration_tests
+    - concurrency_tests
+    - error_cases
+    - edge_cases
+  
+  patterns:
+    unit_test: "TestComponentScenario(t *testing.T)"
+    table_driven: "tests := []struct { ... } { ... }"
+    subtests: "t.Run(name, func(t *testing.T) { ... })"
+    
+  tools:
+    - go test -v
+    - go test -cover
+    - go test -race
+    - go test -bench=.
+
+code_patterns:
+  handlers:
+    signature: "func Handler(w http.ResponseWriter, r *http.Request)"
+    content_type: "always set before WriteHeader"
+    error_handling: "log.Printf, never panic"
+    json: "use json.NewEncoder"
+    
+  methods:
+    receiver: pointer (*Type)
+    names:
+      - IsValid()
+      - HasError()
+      - GetTotal()
+      - Calculate()
+    return_types: bool, int, string, float64 (simple types)
+    
+  error_handling:
+    check: "if err != nil { ... }"
+    action: "return or respond, never swallow"
+    logging: "log.Printf with context"
+    
+  imports:
+    order:
+      - stdlib
+      - blank_line
+      - external_dependencies
+    format: alphabetical
+
+documentation:
+  comments:
+    public_functions: required
+    format: "// FunctionName does something"
+    inline: only for complex logic
+    style: explain why, not what
+    language: english (code), portuguese (comments)
+    
+  readmes:
+    - README.md (project overview)
+    - Inline code comments (complex logic)
+
+quality_gates:
+  must_pass:
+    - gofmt
+    - go vet
+    - go test -v
+    - go test -race
+  
+  coverage_targets:
+    model: 100%
+    handler: 80%
+    service: 95%
+    main: 50%
+
+forbidden_patterns:
+  - global variables
+  - external dependencies (except stdlib)
+  - swallowing errors
+  - panic in handlers
+  - unsafe code
+  - memory leaks
+  - race conditions
+
+encouraged_patterns:
+  - dependency injection
+  - factory pattern
+  - interface segregation
+  - error wrapping
+  - logging context
+  - test coverage
+  - table-driven tests
+  - concurrency tests
+
+formatting:
+  indentation: tabs (not spaces)
+  max_line_length: 120
+  blank_lines:
+    between_functions: 1
+    between_logical_groups: 1
+  tools:
+    - gofmt
+    - go vet
+
+version_control:
+  minimum_tests: "all new functions"
+  coverage_requirement: "80% minimum"
+  ci_checks:
+    - gofmt
+    - go vet
+    - go test -v
+    - go test -race
+
+best_practices:
+  - use http constants (http.StatusOK)
+  - prefer errors.Is over string comparison
+  - implement interfaces implicitly
+  - use defer for cleanup
+  - handle context cancellation
+  - prefer composition over inheritance
+  - keep functions small and focused
+  - document exported APIs
+  - write tests alongside code
