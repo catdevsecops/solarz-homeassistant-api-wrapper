@@ -64,14 +64,14 @@ solarz-homeassistant-api-wrapper/
 
 Os únicos nomes curtos permitidos são parâmetros padrão amplamente reconhecidos:
 
-| Parâmetro | Significado | Por quê | Aceito |
-|-------------|-------------|---------|--------|
-| `w` | http.ResponseWriter | Convenção de Go | ✅ |
-| `r` | *http.Request | Convenção de Go | ✅ |
-| `err` | error | Convenção de Go | ✅ |
-| `i`, `j`, `k` | Loop counters | Apenas em loops simples | ✅ |
-| `ctx` | context.Context | Convenção de Go | ✅ |
-| `t` | *testing.T | Convenção de Go | ✅ |
+| Parâmetro     | Significado         | Por quê                 | Aceito |
+| ------------- | ------------------- | ----------------------- | ------ |
+| `w`           | http.ResponseWriter | Convenção de Go         | ✅     |
+| `r`           | \*http.Request      | Convenção de Go         | ✅     |
+| `err`         | error               | Convenção de Go         | ✅     |
+| `i`, `j`, `k` | Loop counters       | Apenas em loops simples | ✅     |
+| `ctx`         | context.Context     | Convenção de Go         | ✅     |
+| `t`           | \*testing.T         | Convenção de Go         | ✅     |
 
 ### Variáveis Locais: Sempre Descritivas
 
@@ -96,12 +96,13 @@ token := "Bearer token123"
 ### Regras Específicas
 
 1. **Variáveis de Teste**: Sempre descritivas
+
    ```go
    // ✅ CORRETO
    testCaseName := "GET request"
    expectedStatusCode := http.StatusOK
    responseRecorder := httptest.NewRecorder()
-   
+
    // ❌ INCORRETO
    name := "GET request"
    status := http.StatusOK
@@ -109,22 +110,24 @@ token := "Bearer token123"
    ```
 
 2. **Variáveis em Loops**: Use índice só em loops de range simples
+
    ```go
    // ✅ CORRETO
    for iteration := range 5 { ... }  // ou for i := range 5
    for index, testCase := range testCases { ... }
-   
+
    // ❌ INCORRETO
    for i := 0; i < len(items); i++ { ...  // use range
    ```
 
 3. **Variáveis de Estado/Config**: Completamente descritivas
+
    ```go
    // ✅ CORRETO
    originalHttpHandler := log.Writer()
    capturedLogBuffer := &bytes.Buffer{}
    requestHeader := req.Header
-   
+
    // ❌ INCORRETO
    h := log.Writer()
    buf := &bytes.Buffer{}
@@ -133,14 +136,14 @@ token := "Bearer token123"
 
 ---
 
-| Uso | Correto | Incorreto |
-|-----|---------|----------|
-| HTTP Response | `w` | `response_writer`, `rw` |
-| HTTP Request | `r` | `request`, `req` |
-| Erros | `err` | `error_value`, `e` |
-| Configuração | `config` | `cfg`, `conf` |
-| Router | `router` | `mux`, `r` |
-| Context | `ctx` | `context`, `c` |
+| Uso           | Correto  | Incorreto               |
+| ------------- | -------- | ----------------------- |
+| HTTP Response | `w`      | `response_writer`, `rw` |
+| HTTP Request  | `r`      | `request`, `req`        |
+| Erros         | `err`    | `error_value`, `e`      |
+| Configuração  | `config` | `cfg`, `conf`           |
+| Router        | `router` | `mux`, `r`              |
+| Context       | `ctx`    | `context`, `c`          |
 
 ### Funções e Métodos
 
@@ -202,6 +205,7 @@ func healthHandler(w http.ResponseWriter, _ *http.Request) {
 ```
 
 **Características Obrigatórias**:
+
 1. Parâmetros: `(w http.ResponseWriter, r *http.Request)`
 2. Ignorar param não usado: `_`
 3. Setar Content-Type antes de WriteHeader
@@ -227,6 +231,7 @@ func (sr *SolarzResponse) GetTotalDados() int {
 ```
 
 **Características**:
+
 - Sempre verificar nil primeiro
 - Nomes: `Is*`, `Has*`, `Get*`, `Calculate*`
 - Retornar tipos simples (bool, int, string, float64)
@@ -249,6 +254,7 @@ if err := someFunction(); err != nil {
 ```
 
 **Regras**:
+
 1. Sempre verificar `err != nil`
 2. Retornar após erro (não continuar)
 3. Usar `model.ErrorResponse` para respostas
@@ -272,6 +278,7 @@ type ServerConfig struct {
 ```
 
 **Regras**:
+
 - Tags JSON obrigatórias em structs públicas
 - Campos maiúsculos (exportados)
 - Comentário documentando struct
@@ -359,9 +366,9 @@ collectedResponses := make([]ResponseData, 0, totalExpectedResponses)
 for iterationIndex := range numberOfIterations {
     request := httptest.NewRequest(http.MethodGet, "/health", nil)
     responseRecorder := httptest.NewRecorder()
-    
+
     healthHandler(responseRecorder, request)
-    
+
     collectedResponses = append(collectedResponses, parseResponse(responseRecorder))
 }
 
@@ -422,6 +429,7 @@ func TestHealthHandlerSuccess(t *testing.T) {
 **Padrão de Nomenclatura**: `Test<Component><Scenario>`
 
 **Obrigatórios**:
+
 - `httptest.NewRequest` e `httptest.NewRecorder`
 - Comparar com constantes esperadas
 - Usar `t.Errorf` com mensagem clara
@@ -444,9 +452,9 @@ func TestSetupRouterWithDifferentMethods(t *testing.T) {
         t.Run(tt.name, func(t *testing.T) {
             req := httptest.NewRequest(tt.method, "/health", nil)
             w := httptest.NewRecorder()
-            
+
             router.ServeHTTP(w, req)
-            
+
             if w.Code != http.StatusOK {
                 t.Errorf("expected %d, got %d", http.StatusOK, w.Code)
             }
@@ -456,6 +464,7 @@ func TestSetupRouterWithDifferentMethods(t *testing.T) {
 ```
 
 **Vantagens**:
+
 - Casos múltiplos em um teste
 - Cada caso é isolado
 - Fácil adicionar novos casos
@@ -466,25 +475,26 @@ func TestSetupRouterWithDifferentMethods(t *testing.T) {
 ```go
 func captureLogOutput(fn func()) string {
     var buf bytes.Buffer
-    
+
     originalLogger := log.Writer()
     originalFlags := log.Flags()
     originalPrefix := log.Prefix()
-    
+
     log.SetOutput(&buf)
     log.SetFlags(log.LstdFlags)
-    
+
     fn()
-    
+
     log.SetOutput(originalLogger)
     log.SetFlags(originalFlags)
     log.SetPrefix(originalPrefix)
-    
+
     return buf.String()
 }
 ```
 
 **Padrão Crítico**:
+
 - Salvar estado original
 - Restaurar sempre (mesmo após erro)
 - Usar `bytes.Buffer`
@@ -511,6 +521,7 @@ func startServer(config ServerConfig) error {
 ```
 
 **Benefícios**:
+
 - Testável
 - Reutilizável
 - Sem globals
@@ -528,6 +539,7 @@ func setupRouter() *http.ServeMux {
 ```
 
 **Benefícios**:
+
 - Encapsula criação
 - Facilita manutenção
 - Facilita testes
@@ -546,6 +558,7 @@ func GetData(w http.ResponseWriter, _ *http.Request) {
 ```
 
 **Regras**:
+
 - Começar com o nome da função
 - Uma linha se possível
 - Explicar "o quê", não "como"
@@ -559,6 +572,7 @@ log.SetOutput(originalLogger)
 ```
 
 **Regras**:
+
 - Explicar "por quê", não "o quê"
 - Apenas para lógica complexa
 - Evitar ao máximo
@@ -587,6 +601,7 @@ w.Header().Set("Content-Type", "application/json")
 ```
 
 **Regras**:
+
 - Setar antes de WriteHeader
 - Sempre setar Content-Type
 - WriteHeader é explícito
@@ -608,15 +623,16 @@ json.NewEncoder(os.Stdout).Encode(data) // stdout, não response
 
 ## 📊 Cobertura de Testes Esperada
 
-| Componente | Mínimo |
-|-----------|--------|
-| Models | 100% |
-| Handlers | 80% |
-| Service | 95% |
-| Main | 50% |
-| **Média** | **~81%** |
+| Componente | Mínimo   |
+| ---------- | -------- |
+| Models     | 100%     |
+| Handlers   | 80%      |
+| Service    | 95%      |
+| Main       | 50%      |
+| **Média**  | **~81%** |
 
 **Tipos Obrigatórios de Testes**:
+
 - ✅ Unit tests
 - ✅ Integration tests
 - ✅ Concurrency tests
@@ -664,12 +680,13 @@ import (
     "encoding/json"
     "log"
     "net/http"
-    
+
     "github.com/catdevsecops/solarz-api/internal/handler"
 )
 ```
 
 **Ordem**:
+
 1. Stdlib (alfabético)
 2. Linha em branco
 3. Dependências externas (alfabético)
@@ -776,10 +793,10 @@ if err != nil {
 
 ## 📞 Contato e Referências
 
-- **Effective Go**: https://golang.org/doc/effective_go
-- **Code Review Comments**: https://golang.org/wiki/CodeReviewComments
-- **Testing**: https://golang.org/pkg/testing/
-- **HTTP**: https://golang.org/pkg/net/http/
+- **Effective Go**: <https://golang.org/doc/effective_go>
+- **Code Review Comments**: <https://golang.org/wiki/CodeReviewComments>
+- **Testing**: <https://golang.org/pkg/testing/>
+- **HTTP**: <https://golang.org/pkg/net/http/>
 
 ---
 
@@ -797,8 +814,8 @@ Antes de usar Copilot/IA para gerar código, certifique-se de que:
 
 ---
 
-**Versão**: 1.1
-**Data**: 2024-01-05
+**Versão**: 1.2
+**Data**: 2026-06-05
 **Mantido por**: Equipe de Desenvolvimento
 **Status**: Ativo
 
@@ -828,9 +845,49 @@ Essas mudanças surgiram de melhorias reais implementadas no código do projeto:
 ### Conformidade com Projeto
 
 Os padrões agora refletem:
+
 - Estado atual do código base
 - Boas práticas observadas
 - Performanceáncia de memória
 - Legibilidade (Copilot Instructions)
 
+---
 
+## 🐳 Docker Publishing via GitHub Packages (v1.2)
+
+**Nova Pipeline**: `docker-publish.yml`
+
+Migração de Docker Hub para **GitHub Container Registry (GHCR)**:
+
+- ✨ Publicação automática no `ghcr.io`
+- ✨ Imagem pública: `ghcr.io/catdevsecops/solarz-homeassistant-api-wrapper`
+- ✨ Tags automáticas (latest, semver, sha)
+- ✨ Autenticação via `GITHUB_TOKEN` (zero-config)
+- ✨ Cache automático do GitHub Actions
+- ✨ Multi-arquitetura (amd64, arm64)
+
+**Documentação Completa**:
+
+- 📖 `.github/CI-CD-GUIDE.md` - Guia completo de CI/CD
+- 📖 `.github/DOCKER_PUBLISHING.md` - Detalhes do Docker Publishing
+- 🔧 `.github/workflows/docker-publish.yml` - Arquivo do workflow
+
+**Como Usar**:
+
+```bash
+docker pull ghcr.io/catdevsecops/solarz-homeassistant-api-wrapper:latest
+docker run -p 8080:8080 ghcr.io/catdevsecops/solarz-homeassistant-api-wrapper:latest
+```
+
+**Triggers**:
+
+- Push em `main` → tags: `latest`, `sha-abc123`
+- Tag `v1.2.3` → tags: `1.2.3`, `1.2`, `1`
+- Pull Request → build only (sem push)
+
+**Zero-Config**:
+
+- ✅ Sem secrets ou tokens para configurar
+- ✅ Usa `GITHUB_TOKEN` automaticamente
+- ✅ Imagem é pública por padrão
+- ✅ Dockerfile já otimizado (raiz do projeto)

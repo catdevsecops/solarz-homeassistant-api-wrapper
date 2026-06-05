@@ -18,6 +18,11 @@ import (
 const applicationJSON = "application/json"
 
 const (
+	// HTTP Methods.
+	httpMethodGET    = "GET"
+	httpMethodPOST   = "POST"
+	httpMethodDELETE = "DELETE"
+
 	// Paths.
 	healthPath      = "/health"
 	dataPath        = "/api/v1/data"
@@ -34,12 +39,44 @@ const (
 	authorizationHeader = "Authorization"
 	customUserAgent     = "Custom-Client/1.0"
 	bearerToken         = "Bearer token123"
+	contentTypeHeader   = "Content-Type"
 
 	// Server configuration.
 	localhostAddr        = "localhost:8080"
 	anyInterfaceAddr8080 = ":8080"
 	anyInterfaceAddr3000 = ":3000"
 	loopbackAddr9000     = "127.0.0.1:9000"
+
+	// Error and status messages.
+	errFailedToDecode  = "failed to decode response: %v"
+	errFailedToEncode  = "Failed to encode response"
+	errUnexpectedError = "unexpected error"
+	errorMsg           = "error"
+
+	// Status message patterns.
+	statusPattern1    = "status = %q, want 'ok'"
+	statusPattern2    = "status value = %q, want 'ok'"
+	expectedStatus200 = "expected status 200, got %d"
+	expectedStatusFmt = "expected status %d, got %d"
+	expectedAddrFmt   = "expected addr '%s', got '%s'"
+
+	// Validation messages.
+	handlerShouldNotBeNil = "handler should not be nil"
+	expectedHandlerNotNil = "expected handler to not be nil"
+
+	// Concurrent call messages.
+	concurrentCallFailed = "concurrent call failed with status %d"
+	concurrentCallError  = "unexpected error log in concurrent call: %s"
+
+	// Test messages.
+	testMsg     = "Test message"
+	testError   = "Test error"
+	infoMessage = "Info message"
+	testMsg1    = "Message 1"
+	testMsg2    = "Message 2"
+	testMsg3    = "Message 3"
+	directMsg   = "Direct message"
+	wrongMethod = "wrong method"
 )
 
 // TestHealthHandlerSuccess testa o health check com sucesso.
@@ -55,7 +92,7 @@ func TestHealthHandlerSuccess(t *testing.T) {
 	}
 
 	// Verifica Content-Type.
-	contentType := responseRecorder.Header().Get("Content-Type")
+	contentType := responseRecorder.Header().Get(contentTypeHeader)
 	if contentType != applicationJSON {
 		t.Errorf("Content-Type = %q, want 'application/json'", contentType)
 	}
@@ -63,11 +100,11 @@ func TestHealthHandlerSuccess(t *testing.T) {
 	// Verifica body.
 	var result map[string]string
 	if err := json.NewDecoder(responseRecorder.Body).Decode(&result); err != nil {
-		t.Errorf("failed to decode response: %v", err)
+		t.Errorf("failed to decode: %v", err)
 	}
 
 	if result[statusField] != statusOK {
-		t.Errorf("status = %q, want 'ok'", result[statusField])
+		t.Errorf(statusPattern1, result[statusField])
 	}
 }
 
@@ -77,9 +114,9 @@ func TestHealthHandlerWithDifferentMethods(t *testing.T) {
 		name   string
 		method string
 	}{
-		{"GET request", "GET"},
-		{"POST request", "POST"},
-		{"DELETE request", "DELETE"},
+		{"GET request", httpMethodGET},
+		{"POST request", httpMethodPOST},
+		{"DELETE request", httpMethodDELETE},
 	}
 
 	for _, testCase := range tests {
@@ -95,7 +132,7 @@ func TestHealthHandlerWithDifferentMethods(t *testing.T) {
 
 			var result map[string]string
 			if err := json.NewDecoder(responseRecorder.Body).Decode(&result); err != nil {
-				t.Errorf("%s: failed to decode: %v", testCase.method, err)
+				t.Errorf("%s: "+errFailedToDecode, testCase.method, err)
 			}
 
 			if result[statusField] != statusOK {
@@ -136,7 +173,7 @@ func TestHealthHandlerHeadersSet(t *testing.T) {
 	healthHandler(responseRecorder, req)
 
 	// Verifica Content-Type.
-	if ct := responseRecorder.Header().Get("Content-Type"); ct != applicationJSON {
+	if ct := responseRecorder.Header().Get(contentTypeHeader); ct != applicationJSON {
 		t.Errorf("Content-Type header = %q, want 'application/json'", ct)
 	}
 
@@ -243,7 +280,7 @@ func TestHealthHandlerConcurrency(t *testing.T) {
 			healthHandler(responseRecorder, req)
 
 			if responseRecorder.Code != http.StatusOK {
-				t.Errorf("concurrent call failed with status %d", responseRecorder.Code)
+				t.Errorf(concurrentCallFailed, responseRecorder.Code)
 			}
 
 			var result map[string]string
@@ -270,7 +307,7 @@ func TestHealthHandlerWithQueryParams(t *testing.T) {
 
 	// O handler deve ignorar query params e retornar normalmente.
 	if responseRecorder.Code != http.StatusOK {
-		t.Errorf("expected status %d, got %d", http.StatusOK, responseRecorder.Code)
+		t.Errorf(expectedStatusFmt, http.StatusOK, responseRecorder.Code)
 	}
 
 	var result map[string]string
@@ -279,7 +316,7 @@ func TestHealthHandlerWithQueryParams(t *testing.T) {
 	}
 
 	if result[statusField] != statusOK {
-		t.Errorf("status = %q, want 'ok'", result[statusField])
+		t.Errorf(statusPattern1, result[statusField])
 	}
 }
 
@@ -294,7 +331,7 @@ func TestHealthHandlerWithHeaders(t *testing.T) {
 
 	// O handler deve ignorar headers customizados e retornar normalmente.
 	if responseRecorder.Code != http.StatusOK {
-		t.Errorf("expected status %d, got %d", http.StatusOK, responseRecorder.Code)
+		t.Errorf(expectedStatusFmt, http.StatusOK, responseRecorder.Code)
 	}
 
 	var result map[string]string
@@ -303,7 +340,7 @@ func TestHealthHandlerWithHeaders(t *testing.T) {
 	}
 
 	if result[statusField] != statusOK {
-		t.Errorf("status = %q, want 'ok'", result[statusField])
+		t.Errorf(statusPattern1, result[statusField])
 	}
 }
 
@@ -398,7 +435,7 @@ func TestErrorResponseModel(t *testing.T) {
 		t.Fatalf("failed to unmarshal error response: %v", err)
 	}
 
-	if result.Error != "Test error" {
+	if result.Error != testError {
 		t.Errorf("error message = %q, want 'Test error'", result.Error)
 	}
 }
@@ -503,7 +540,7 @@ func TestServerConfigDifferentAddresses(t *testing.T) {
 			}
 
 			if config.Addr != testCase.addr {
-				t.Errorf("expected addr '%s', got '%s'", testCase.addr, config.Addr)
+				t.Errorf(expectedAddrFmt, testCase.addr, config.Addr)
 			}
 
 			if config.Handler == nil {
@@ -546,8 +583,8 @@ func TestSetupRouterMultipleRoutes(t *testing.T) {
 		path   string
 		method string
 	}{
-		{"health endpoint", healthPath, "GET"},
-		{"data endpoint", dataPath, "GET"},
+		{"health endpoint", healthPath, httpMethodGET},
+		{"data endpoint", dataPath, httpMethodGET},
 	}
 
 	for _, testCase := range tests {
@@ -609,8 +646,8 @@ func TestSetupRouterIsConsistent(t *testing.T) {
 
 	// Ambos devem ter as mesmas rotas.
 	for path, method := range map[string]string{
-		healthPath: "GET",
-		dataPath:   "GET",
+		healthPath: httpMethodGET,
+		dataPath:   httpMethodGET,
 	} {
 		req1 := httptest.NewRequestWithContext(context.Background(), method, path, nil)
 		responseRecorder1 := httptest.NewRecorder()
@@ -675,7 +712,7 @@ func TestServerConfigWithHandler(t *testing.T) {
 	}
 
 	if config.Handler == nil {
-		t.Error("handler should not be nil")
+		t.Error(handlerShouldNotBeNil)
 	}
 
 	// Testa que handler funciona.
@@ -702,7 +739,7 @@ func TestSetupRouterWithConcurrentRequests(t *testing.T) {
 			router.ServeHTTP(responseRecorder, req)
 
 			if responseRecorder.Code != http.StatusOK {
-				t.Errorf("expected status 200, got %d", responseRecorder.Code)
+				t.Errorf(expectedStatus200, responseRecorder.Code)
 			}
 
 			done <- true
@@ -726,7 +763,7 @@ func TestServerConfigEmptyAddr(t *testing.T) {
 	}
 
 	if config.Handler == nil {
-		t.Error("handler should not be nil")
+		t.Error(handlerShouldNotBeNil)
 	}
 }
 
@@ -746,7 +783,7 @@ func TestSetupRouterHandlesInvalidPaths(t *testing.T) {
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
 			var method string
-			if testCase.name == "wrong method" {
+			if testCase.name == wrongMethod {
 				method = "POST" // Method incorreto para /health
 			} else {
 				method = "GET"
@@ -784,7 +821,7 @@ func TestSetupRouterConcurrent(t *testing.T) {
 			router.ServeHTTP(responseRecorder, req)
 
 			if responseRecorder.Code != http.StatusOK {
-				t.Errorf("concurrent call failed with status %d", responseRecorder.Code)
+				t.Errorf(concurrentCallFailed, responseRecorder.Code)
 			}
 
 			done <- true
@@ -881,25 +918,25 @@ func (fw *failingWriter) WriteHeader(_ int) {
 // TestLoggerCaptureBasic testa a função de captura de logs.
 func TestLoggerCaptureBasic(t *testing.T) {
 	logOutput := captureLogOutput(func() {
-		log.Println("Test message")
+		log.Println(testMsg)
 	})
 
-	if !strings.Contains(logOutput, "Test message") {
-		t.Errorf("expected 'Test message' in log output, got: %s", logOutput)
+	if !strings.Contains(logOutput, testMsg) {
+		t.Errorf("expected '%s' in log output, got: %s", testMsg, logOutput)
 	}
 }
 
 // TestLoggerCaptureMultipleMessages testa captura de múltiplos logs.
 func TestLoggerCaptureMultipleMessages(t *testing.T) {
 	logOutput := captureLogOutput(func() {
-		log.Println("Message 1")
-		log.Println("Message 2")
-		log.Println("Message 3")
+		log.Println(testMsg1)
+		log.Println(testMsg2)
+		log.Println(testMsg3)
 	})
 
-	if !strings.Contains(logOutput, "Message 1") ||
-		!strings.Contains(logOutput, "Message 2") ||
-		!strings.Contains(logOutput, "Message 3") {
+	if !strings.Contains(logOutput, testMsg1) ||
+		!strings.Contains(logOutput, testMsg2) ||
+		!strings.Contains(logOutput, testMsg3) {
 		t.Errorf("expected all messages in log output, got: %s", logOutput)
 	}
 }
@@ -907,10 +944,10 @@ func TestLoggerCaptureMultipleMessages(t *testing.T) {
 // TestLoggerCaptureFormat testa se o formato do log é correto.
 func TestLoggerCaptureFormat(t *testing.T) {
 	logOutput := captureLogOutput(func() {
-		log.Printf("Error: %v", "test error")
+		log.Printf("Error: %v", testError)
 	})
 
-	if !strings.Contains(logOutput, "Error: test error") {
+	if !strings.Contains(logOutput, "Error: "+testError) {
 		t.Errorf("expected formatted message, got: %s", logOutput)
 	}
 }
@@ -992,9 +1029,9 @@ func TestMultipleHandlerCallsLogging(t *testing.T) {
 func TestLoggerWithDifferentLevels(t *testing.T) {
 	t.Run("Println", func(t *testing.T) {
 		logOutput := captureLogOutput(func() {
-			log.Println("Info message")
+			log.Println(infoMessage)
 		})
-		if !strings.Contains(logOutput, "Info message") {
+		if !strings.Contains(logOutput, infoMessage) {
 			t.Error("Println message not captured")
 		}
 	})
@@ -1010,9 +1047,9 @@ func TestLoggerWithDifferentLevels(t *testing.T) {
 
 	t.Run("Print", func(t *testing.T) {
 		logOutput := captureLogOutput(func() {
-			log.Print("Direct message")
+			log.Print(directMsg)
 		})
-		if !strings.Contains(logOutput, "Direct message") {
+		if !strings.Contains(logOutput, directMsg) {
 			t.Error("Print message not captured")
 		}
 	})

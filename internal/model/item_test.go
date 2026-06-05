@@ -7,16 +7,17 @@ import (
 	"github.com/catdevsecops/solarz-api/internal/model"
 )
 
-const testDescription = "Test description"
-
 const (
 	// Test IDs and names.
-	testID    = "test-id"
-	testName  = "Test Name"
-	testValue = "Test Value"
+	testID          = "test-id"
+	testName        = "Test Name"
+	testValue       = "Test Value"
+	testDescription = "Test description"
 
 	// Data values.
 	dataDate1  = "2024-01-01"
+	dataDate2  = "2024-01-02"
+	dataDate3  = "2024-01-03"
 	usinaDenom = "Usina A"
 
 	// Climate.
@@ -28,6 +29,88 @@ const (
 	genLabel1   = "Generation 1"
 	genLabel2   = "Generation 2"
 	genLabelStr = "Generation"
+
+	// Error messages.
+	errMarshalItem             = "Failed to marshal *model.Item"
+	errUnmarshalItem           = "Failed to unmarshal *model.Item"
+	errMarshalErrorResp        = "Failed to marshal *model.ErrorResponse"
+	errUnmarshalErrorResp      = "Failed to unmarshal *model.ErrorResponse"
+	errMarshalSolarzResp       = "Failed to marshal *model.SolarzResponse"
+	errUnmarshalSolarzResp     = "Failed to unmarshal *model.SolarzResponse"
+	errMarshalDadoGeracao      = "Failed to marshal *model.DadoGeracao"
+	errUnmarshalDadoGeracao    = "Failed to unmarshal *model.DadoGeracao"
+	errMarshalClimaInfo        = "Failed to marshal *model.InformacaoClima"
+	errUnmarshalClimaInfo      = "Failed to unmarshal *model.InformacaoClima"
+	errMarshalGeracaoDetalhe   = "Failed to marshal *model.GeracaoDetalhe"
+	errUnmarshalGeracaoDetalhe = "Failed to unmarshal *model.GeracaoDetalhe"
+	errMarshalLabelValue       = "Failed to marshal *model.LabelValue"
+	errUnmarshalLabelValue     = "Failed to unmarshal *model.LabelValue"
+	errMarshalComplexResp      = "Failed to marshal complex *model.SolarzResponse"
+	errUnmarshalComplexResp    = "Failed to unmarshal complex *model.SolarzResponse"
+
+	// Test case names.
+	testCaseValidItem          = "Valid item"
+	testCaseItemEmptyID        = "Item with empty ID"
+	testCaseNilItem            = "Nil item"
+	testCaseEmptyItem          = "Empty item"
+	testCaseItemWithID         = "Item with ID"
+	testCaseItemWithName       = "Item with Name"
+	testCaseItemWithValue      = "Item with Value"
+	testCaseCompleteItem       = "Complete item"
+	testCaseWithError          = "With error message"
+	testCaseWithEmptyError     = "With empty error"
+	testCaseNilErrorResponse   = "Nil error response"
+	testCaseOneDato            = "With one dato"
+	testCaseMultipleDados      = "With multiple dados"
+	testCaseNoDados            = "With no dados"
+	testCaseNilResponse        = "Nil response"
+	testCaseNormalCalc         = "Normal calculation"
+	testCaseAbovePrognosis     = "Above prognosis"
+	testCaseBelowPrognosis     = "Below prognosis"
+	testCaseZeroPrognosis      = "Zero prognosis"
+	testCaseNilDado            = "Nil dado"
+	testCaseManualEntry        = "Manual entry"
+	testCaseAutomaticEntry     = "Automatic entry"
+	testCaseWithDescription    = "With description"
+	testCaseWithEmptyDesc      = "With empty description"
+	testCaseWithoutDescription = "Without description"
+	testCaseNilGeracao         = "Nil geracao"
+	testCaseValidLabel         = "Valid label"
+	testCaseEmptyLabel         = "With empty label"
+	testCaseNilLabel           = "Nil label"
+
+	// Expected values in assertions.
+	expectedTestID         = "Expected ID 'test-id', got '%s'"
+	expectedTestName       = "Expected Name 'Test Name', got '%s'"
+	expectedTestValue      = "Expected Value 'Test Value', got '%s'"
+	expectedEmptyID        = "Expected empty ID, got '%s'"
+	expectedEmptyName      = "Expected empty Name, got '%s'"
+	expectedEmptyValue     = "Expected empty Value, got '%s'"
+	expectedErrorMsg       = "Expected error message 'Test error message', got '%s'"
+	expectedDataDate       = "Expected Data '%s', got '%s'"
+	expectedQuantity       = "Expected Quantidade %f, got %f"
+	expectedPrognostico    = "Expected Prognostico %f, got %f"
+	expectedQuantity25_0   = "Expected Quantidade 25.0, got %f"
+	expectedVsGot          = "Expected %v, got %v"
+	errorTestMessage       = "Test error message"
+	expectedWentWrong      = "Something went wrong"
+	expectedDenominacao    = "Expected Denominacao '%s', got '%s'"
+	expectedDescription    = "Expected Descricao '%s', got '%s'"
+	expectedClimaDesc      = "Expected Descricao 'Sunny', got '%s'"
+	expectedClimaCreatedAt = "Expected CreatedAt '2024-01-01T10:00:00Z', got '%s'"
+	expectedIDExterno      = "Expected IdExterno 'ext-1', got '%s'"
+	expectedLabel          = "Expected Label '%s', got '%s'"
+	expectedLabelValue     = "Expected Label 'Generation', got '%s'"
+	expectedValue100_5     = "Expected Value 100.5, got %f"
+	expectedValue50_0      = "Expected gen1 Value 50.0, got %f"
+	expectedValue100_0     = "Expected jan value 100.0, got %f"
+	expectedDados1         = "Expected 1 *model.DadoGeracao, got %d"
+	expectedDados          = "Expected 1 Geracao, got %d"
+	expectedGeracoes1      = "Expected 1 *model.GeracaoDetalhe, got %d"
+	expectedLabeledGen2    = "Expected 2 labeled generations, got %d"
+	expectedPrognosticos2  = "Expected 2 prognósticos, got %d"
+	expectedGenKey         = "Expected 'gen1' key in LabeledGenerations"
+	expectedJanKey         = "Expected 'jan' key in Prognosticos"
 )
 
 // TestItem testa a estrutura *model.Item.
@@ -39,15 +122,15 @@ func TestItem(t *testing.T) {
 	}
 
 	if item.ID != testID {
-		t.Errorf("Expected ID 'test-id', got '%s'", item.ID)
+		t.Errorf(expectedTestID, item.ID)
 	}
 
 	if item.Name != testName {
-		t.Errorf("Expected Name 'Test Name', got '%s'", item.Name)
+		t.Errorf(expectedTestName, item.Name)
 	}
 
 	if item.Value != testValue {
-		t.Errorf("Expected Value 'Test Value', got '%s'", item.Value)
+		t.Errorf(expectedTestValue, item.Value)
 	}
 }
 
@@ -62,14 +145,14 @@ func TestItemJSON(t *testing.T) {
 	// Serializar para JSON
 	jsonData, err := json.Marshal(original)
 	if err != nil {
-		t.Fatalf("Failed to marshal *model.Item: %v", err)
+		t.Fatalf(errMarshalItem+": %v", err)
 	}
 
 	// Desserializar de volta
 	var deserialized model.Item
 	err = json.Unmarshal(jsonData, &deserialized)
 	if err != nil {
-		t.Fatalf("Failed to unmarshal *model.Item: %v", err)
+		t.Fatalf(errUnmarshalItem+": %v", err)
 	}
 
 	if deserialized.ID != original.ID {
@@ -90,44 +173,44 @@ func TestItemEmptyFields(t *testing.T) {
 	item := model.Item{}
 
 	if item.ID != "" {
-		t.Errorf("Expected empty ID, got '%s'", item.ID)
+		t.Errorf(expectedEmptyID, item.ID)
 	}
 
 	if item.Name != "" {
-		t.Errorf("Expected empty Name, got '%s'", item.Name)
+		t.Errorf(expectedEmptyName, item.Name)
 	}
 
 	if item.Value != "" {
-		t.Errorf("Expected empty Value, got '%s'", item.Value)
+		t.Errorf(expectedEmptyValue, item.Value)
 	}
 }
 
 // TestErrorResponse testa a estrutura *model.ErrorResponse.
 func TestErrorResponse(t *testing.T) {
 	errResp := model.ErrorResponse{
-		Error: "Test error message",
+		Error: errorTestMessage,
 	}
 
-	if errResp.Error != "Test error message" {
-		t.Errorf("Expected error message 'Test error message', got '%s'", errResp.Error)
+	if errResp.Error != errorTestMessage {
+		t.Errorf(expectedErrorMsg, errResp.Error)
 	}
 }
 
 // TestErrorResponseJSON testa a serialização/desserialização JSON do *model.ErrorResponse.
 func TestErrorResponseJSON(t *testing.T) {
 	original := model.ErrorResponse{
-		Error: "Test error message",
+		Error: errorTestMessage,
 	}
 
 	jsonData, err := json.Marshal(original)
 	if err != nil {
-		t.Fatalf("Failed to marshal *model.ErrorResponse: %v", err)
+		t.Fatalf(errMarshalErrorResp+": %v", err)
 	}
 
 	var deserialized model.ErrorResponse
 	err = json.Unmarshal(jsonData, &deserialized)
 	if err != nil {
-		t.Fatalf("Failed to unmarshal *model.ErrorResponse: %v", err)
+		t.Fatalf(errUnmarshalErrorResp+": %v", err)
 	}
 
 	if deserialized.Error != original.Error {
@@ -176,11 +259,11 @@ func TestSolarzResponseWithDados(t *testing.T) {
 	}
 
 	if len(resp.Dados) != 1 {
-		t.Errorf("Expected 1 *model.DadoGeracao, got %d", len(resp.Dados))
+		t.Errorf(expectedDados1, len(resp.Dados))
 	}
 
 	if resp.Dados[0].Data != dataDate1 {
-		t.Errorf("Expected Data '2024-01-01', got '%s'", resp.Dados[0].Data)
+		t.Errorf(expectedDataDate, dataDate1, resp.Dados[0].Data)
 	}
 }
 
@@ -195,13 +278,13 @@ func TestSolarzResponseJSON(t *testing.T) {
 
 	jsonData, err := json.Marshal(original)
 	if err != nil {
-		t.Fatalf("Failed to marshal *model.SolarzResponse: %v", err)
+		t.Fatalf(errMarshalSolarzResp+": %v", err)
 	}
 
 	var deserialized model.SolarzResponse
 	err = json.Unmarshal(jsonData, &deserialized)
 	if err != nil {
-		t.Fatalf("Failed to unmarshal *model.SolarzResponse: %v", err)
+		t.Fatalf(errUnmarshalSolarzResp+": %v", err)
 	}
 
 	if deserialized.TotalGerado != original.TotalGerado {
@@ -226,15 +309,15 @@ func TestDadoGeracao(t *testing.T) {
 	}
 
 	if dado.Data != dataDate1 {
-		t.Errorf("Expected Data '2024-01-01', got '%s'", dado.Data)
+		t.Errorf(expectedDataDate, dataDate1, dado.Data)
 	}
 
 	if dado.Quantidade != 50.0 {
-		t.Errorf("Expected Quantidade 50.0, got %f", dado.Quantidade)
+		t.Errorf(expectedQuantity, 50.0, dado.Quantidade)
 	}
 
 	if dado.Prognostico != 48.0 {
-		t.Errorf("Expected Prognostico 48.0, got %f", dado.Prognostico)
+		t.Errorf(expectedPrognostico, 48.0, dado.Prognostico)
 	}
 
 	if dado.Manual {
@@ -248,7 +331,7 @@ func TestDadoGeracao(t *testing.T) {
 
 // TestDadoGeracaoWithGeracoes testa DadoGeracao com detalhes de geração.
 func TestDadoGeracaoWithGeracoes(t *testing.T) {
-	descricao := "Test generation"
+	descricao := testDescription
 	dado := model.DadoGeracao{
 		Data:       dataDate1,
 		Quantidade: 50.0,
@@ -262,15 +345,15 @@ func TestDadoGeracaoWithGeracoes(t *testing.T) {
 	}
 
 	if len(dado.Geracoes) != 1 {
-		t.Errorf("Expected 1 *model.GeracaoDetalhe, got %d", len(dado.Geracoes))
+		t.Errorf(expectedGeracoes1, len(dado.Geracoes))
 	}
 
 	if dado.Geracoes[0].Quantidade != 25.0 {
-		t.Errorf("Expected Quantidade 25.0, got %f", dado.Geracoes[0].Quantidade)
+		t.Errorf(expectedQuantity25_0, dado.Geracoes[0].Quantidade)
 	}
 
-	if *dado.Geracoes[0].Descricao != "Test generation" {
-		t.Errorf("Expected Descricao 'Test generation', got '%s'", *dado.Geracoes[0].Descricao)
+	if *dado.Geracoes[0].Descricao != testDescription {
+		t.Errorf(expectedDescription, testDescription, *dado.Geracoes[0].Descricao)
 	}
 }
 
@@ -286,21 +369,21 @@ func TestDadoGeracaoJSON(t *testing.T) {
 
 	jsonData, err := json.Marshal(original)
 	if err != nil {
-		t.Fatalf("Failed to marshal *model.DadoGeracao: %v", err)
+		t.Fatalf(errMarshalDadoGeracao+": %v", err)
 	}
 
 	var deserialized model.DadoGeracao
 	err = json.Unmarshal(jsonData, &deserialized)
 	if err != nil {
-		t.Fatalf("Failed to unmarshal *model.DadoGeracao: %v", err)
+		t.Fatalf(errUnmarshalDadoGeracao+": %v", err)
 	}
 
 	if deserialized.Data != original.Data {
-		t.Errorf("Expected Data '%s', got '%s'", original.Data, deserialized.Data)
+		t.Errorf(expectedDataDate, original.Data, deserialized.Data)
 	}
 
 	if deserialized.Denominacao != original.Denominacao {
-		t.Errorf("Expected Denominacao '%s', got '%s'", original.Denominacao, deserialized.Denominacao)
+		t.Errorf(expectedDenominacao, original.Denominacao, deserialized.Denominacao)
 	}
 }
 
@@ -317,11 +400,11 @@ func TestInformacaoClima(t *testing.T) {
 	}
 
 	if clima.Descricao != climaDesc {
-		t.Errorf("Expected Descricao 'Sunny', got '%s'", clima.Descricao)
+		t.Errorf(expectedClimaDesc, clima.Descricao)
 	}
 
 	if clima.CreatedAt != climaCreated {
-		t.Errorf("Expected CreatedAt '2024-01-01T10:00:00Z', got '%s'", clima.CreatedAt)
+		t.Errorf(expectedClimaCreatedAt, clima.CreatedAt)
 	}
 }
 
@@ -335,13 +418,13 @@ func TestInformacaoClimaJSON(t *testing.T) {
 
 	jsonData, err := json.Marshal(original)
 	if err != nil {
-		t.Fatalf("Failed to marshal *model.InformacaoClima: %v", err)
+		t.Fatalf(errMarshalClimaInfo+": %v", err)
 	}
 
 	var deserialized model.InformacaoClima
 	err = json.Unmarshal(jsonData, &deserialized)
 	if err != nil {
-		t.Fatalf("Failed to unmarshal *model.InformacaoClima: %v", err)
+		t.Fatalf(errUnmarshalClimaInfo+": %v", err)
 	}
 
 	if deserialized.ID != original.ID {
@@ -349,7 +432,7 @@ func TestInformacaoClimaJSON(t *testing.T) {
 	}
 
 	if deserialized.Descricao != original.Descricao {
-		t.Errorf("Expected Descricao '%s', got '%s'", original.Descricao, deserialized.Descricao)
+		t.Errorf(expectedDescription, original.Descricao, deserialized.Descricao)
 	}
 }
 
@@ -365,7 +448,7 @@ func TestGeracaoDetalhe(t *testing.T) {
 	}
 
 	if geracao.IDExterno != extIDValue {
-		t.Errorf("Expected IdExterno 'ext-1', got '%s'", geracao.IDExterno)
+		t.Errorf(expectedIDExterno, geracao.IDExterno)
 	}
 
 	if geracao.Descricao != nil {
@@ -387,7 +470,7 @@ func TestGeracaoDetalheWithDescricao(t *testing.T) {
 	}
 
 	if *geracao.Descricao != testDescription {
-		t.Errorf("Expected Descricao 'Test description', got '%s'", *geracao.Descricao)
+		t.Errorf(expectedDescription, testDescription, *geracao.Descricao)
 	}
 }
 
@@ -402,21 +485,21 @@ func TestGeracaoDetalheJSON(t *testing.T) {
 
 	jsonData, err := json.Marshal(original)
 	if err != nil {
-		t.Fatalf("Failed to marshal *model.GeracaoDetalhe: %v", err)
+		t.Fatalf(errMarshalGeracaoDetalhe+": %v", err)
 	}
 
 	var deserialized model.GeracaoDetalhe
 	err = json.Unmarshal(jsonData, &deserialized)
 	if err != nil {
-		t.Fatalf("Failed to unmarshal *model.GeracaoDetalhe: %v", err)
+		t.Fatalf(errUnmarshalGeracaoDetalhe+": %v", err)
 	}
 
 	if deserialized.Quantidade != original.Quantidade {
-		t.Errorf("Expected Quantidade %f, got %f", original.Quantidade, deserialized.Quantidade)
+		t.Errorf(expectedQuantity, original.Quantidade, deserialized.Quantidade)
 	}
 
 	if deserialized.IDExterno != original.IDExterno {
-		t.Errorf("Expected IdExterno '%s', got '%s'", original.IDExterno, deserialized.IDExterno)
+		t.Errorf(expectedIDExterno, deserialized.IDExterno)
 	}
 }
 
@@ -428,11 +511,11 @@ func TestLabelValue(t *testing.T) {
 	}
 
 	if label.Label != genLabelStr {
-		t.Errorf("Expected Label 'Generation', got '%s'", label.Label)
+		t.Errorf(expectedLabelValue, label.Label)
 	}
 
 	if label.Value != 100.5 {
-		t.Errorf("Expected Value 100.5, got %f", label.Value)
+		t.Errorf(expectedValue100_5, label.Value)
 	}
 }
 
@@ -445,17 +528,17 @@ func TestLabelValueJSON(t *testing.T) {
 
 	jsonData, err := json.Marshal(original)
 	if err != nil {
-		t.Fatalf("Failed to marshal *model.LabelValue: %v", err)
+		t.Fatalf(errMarshalLabelValue+": %v", err)
 	}
 
 	var deserialized model.LabelValue
 	err = json.Unmarshal(jsonData, &deserialized)
 	if err != nil {
-		t.Fatalf("Failed to unmarshal *model.LabelValue: %v", err)
+		t.Fatalf(errUnmarshalLabelValue+": %v", err)
 	}
 
 	if deserialized.Label != original.Label {
-		t.Errorf("Expected Label '%s', got '%s'", original.Label, deserialized.Label)
+		t.Errorf(expectedLabel, original.Label, deserialized.Label)
 	}
 
 	if deserialized.Value != original.Value {
@@ -473,20 +556,20 @@ func TestSolarzResponseWithLabeledGenerations(t *testing.T) {
 	}
 
 	if len(resp.LabeledGenerations) != 2 {
-		t.Errorf("Expected 2 labeled generations, got %d", len(resp.LabeledGenerations))
+		t.Errorf(expectedLabeledGen2, len(resp.LabeledGenerations))
 	}
 
 	gen1, ok := resp.LabeledGenerations["gen1"]
 	if !ok {
-		t.Fatal("Expected 'gen1' key in LabeledGenerations")
+		t.Fatal(expectedGenKey)
 	}
 
 	if gen1.Value != 50.0 {
-		t.Errorf("Expected gen1 Value 50.0, got %f", gen1.Value)
+		t.Errorf(expectedValue50_0, gen1.Value)
 	}
 }
 
-// TestSolarzResponseWithPrognosticos testa SolarzResponse com prognósticos.
+// TestSolarzResponseWithPrognosticos testa SolarzResponse com progósticos.
 func TestSolarzResponseWithPrognosticos(t *testing.T) {
 	resp := model.SolarzResponse{
 		Prognosticos: map[string]float64{
@@ -496,16 +579,16 @@ func TestSolarzResponseWithPrognosticos(t *testing.T) {
 	}
 
 	if len(resp.Prognosticos) != 2 {
-		t.Errorf("Expected 2 prognósticos, got %d", len(resp.Prognosticos))
+		t.Errorf(expectedPrognosticos2, len(resp.Prognosticos))
 	}
 
 	janValue, ok := resp.Prognosticos["jan"]
 	if !ok {
-		t.Fatal("Expected 'jan' key in Prognosticos")
+		t.Fatal(expectedJanKey)
 	}
 
 	if janValue != 100.0 {
-		t.Errorf("Expected jan value 100.0, got %f", janValue)
+		t.Errorf(expectedValue100_0, janValue)
 	}
 }
 
@@ -550,25 +633,25 @@ func TestComplexSolarzResponseJSON(t *testing.T) {
 
 	jsonData, err := json.Marshal(original)
 	if err != nil {
-		t.Fatalf("Failed to marshal complex *model.SolarzResponse: %v", err)
+		t.Fatalf(errMarshalComplexResp+": %v", err)
 	}
 
 	var deserialized model.SolarzResponse
 	err = json.Unmarshal(jsonData, &deserialized)
 	if err != nil {
-		t.Fatalf("Failed to unmarshal complex *model.SolarzResponse: %v", err)
+		t.Fatalf(errUnmarshalComplexResp+": %v", err)
 	}
 
 	if len(deserialized.Dados) != 1 {
-		t.Errorf("Expected 1 *model.DadoGeracao, got %d", len(deserialized.Dados))
+		t.Errorf(expectedDados1, len(deserialized.Dados))
 	}
 
 	if deserialized.Dados[0].Denominacao != usinaDenom {
-		t.Errorf("Expected Denominacao 'Usina A', got '%s'", deserialized.Dados[0].Denominacao)
+		t.Errorf(expectedDenominacao, usinaDenom, deserialized.Dados[0].Denominacao)
 	}
 
 	if len(deserialized.Dados[0].Geracoes) != 1 {
-		t.Errorf("Expected 1 Geracao, got %d", len(deserialized.Dados[0].Geracoes))
+		t.Errorf(expectedDados, len(deserialized.Dados[0].Geracoes))
 	}
 }
 
@@ -579,16 +662,16 @@ func TestItemIsValid(t *testing.T) {
 		item     *model.Item
 		expected bool
 	}{
-		{"Valid item", &model.Item{ID: "123", Name: "Test"}, true},
-		{"Item with empty ID", &model.Item{ID: "", Name: "Test"}, false},
-		{"Nil item", nil, false},
+		{testCaseValidItem, &model.Item{ID: "123", Name: "Test TestItemIsValid"}, true},
+		{testCaseItemEmptyID, &model.Item{ID: "", Name: "Test TestItemIsValid 2"}, false},
+		{testCaseNilItem, nil, false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := tt.item.IsValid()
 			if result != tt.expected {
-				t.Errorf("Expected %v, got %v", tt.expected, result)
+				t.Errorf(expectedVsGot, tt.expected, result)
 			}
 		})
 	}
@@ -601,19 +684,19 @@ func TestItemIsEmpty(t *testing.T) {
 		item     *model.Item
 		expected bool
 	}{
-		{"Empty item", &model.Item{}, true},
-		{"Item with ID", &model.Item{ID: "123"}, false},
-		{"Item with Name", &model.Item{Name: "Test"}, false},
-		{"Item with Value", &model.Item{Value: "Value"}, false},
-		{"Nil item", nil, true},
-		{"Complete item", &model.Item{ID: "123", Name: "Test", Value: "Value"}, false},
+		{testCaseEmptyItem, &model.Item{}, true},
+		{testCaseItemWithID, &model.Item{ID: "123"}, false},
+		{testCaseItemWithName, &model.Item{Name: "Test TestItemIsEmpty"}, false},
+		{testCaseItemWithValue, &model.Item{Value: "Value"}, false},
+		{testCaseNilItem, nil, true},
+		{testCaseCompleteItem, &model.Item{ID: "123", Name: "Test TestItemIsEmpty 2", Value: "Value"}, false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := tt.item.IsEmpty()
 			if result != tt.expected {
-				t.Errorf("Expected %v, got %v", tt.expected, result)
+				t.Errorf(expectedVsGot, tt.expected, result)
 			}
 		})
 	}
@@ -626,16 +709,16 @@ func TestErrorResponseHasError(t *testing.T) {
 		errResp  *model.ErrorResponse
 		expected bool
 	}{
-		{"With error message", &model.ErrorResponse{Error: "Something went wrong"}, true},
-		{"With empty error", &model.ErrorResponse{Error: ""}, false},
-		{"Nil error response", nil, false},
+		{testCaseWithError, &model.ErrorResponse{Error: expectedWentWrong}, true},
+		{testCaseWithEmptyError, &model.ErrorResponse{Error: ""}, false},
+		{testCaseNilErrorResponse, nil, false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := tt.errResp.HasError()
 			if result != tt.expected {
-				t.Errorf("Expected %v, got %v", tt.expected, result)
+				t.Errorf(expectedVsGot, tt.expected, result)
 			}
 		})
 	}
@@ -648,12 +731,12 @@ func TestSolarzResponseGetTotalDados(t *testing.T) {
 		resp     *model.SolarzResponse
 		expected int
 	}{
-		{"With one dato", &model.SolarzResponse{Dados: []model.DadoGeracao{{Data: dataDate1}}}, 1},
-		{"With multiple dados", &model.SolarzResponse{Dados: []model.DadoGeracao{
-			{Data: dataDate1}, {Data: "2024-01-02"}, {Data: "2024-01-03"},
+		{testCaseOneDato, &model.SolarzResponse{Dados: []model.DadoGeracao{{Data: dataDate1}}}, 1},
+		{testCaseMultipleDados, &model.SolarzResponse{Dados: []model.DadoGeracao{
+			{Data: dataDate1}, {Data: dataDate2}, {Data: dataDate3},
 		}}, 3},
-		{"With no dados", &model.SolarzResponse{Dados: []model.DadoGeracao{}}, 0},
-		{"Nil response", nil, 0},
+		{testCaseNoDados, &model.SolarzResponse{Dados: []model.DadoGeracao{}}, 0},
+		{testCaseNilResponse, nil, 0},
 	}
 
 	for _, tt := range tests {
@@ -673,11 +756,11 @@ func TestDadoGeracaoCalculateDesempenho(t *testing.T) {
 		dado     *model.DadoGeracao
 		expected float64
 	}{
-		{"Normal calculation", &model.DadoGeracao{Quantidade: 100, Prognostico: 100}, 1.0},
-		{"Above prognosis", &model.DadoGeracao{Quantidade: 120, Prognostico: 100}, 1.2},
-		{"Below prognosis", &model.DadoGeracao{Quantidade: 80, Prognostico: 100}, 0.8},
-		{"Zero prognosis", &model.DadoGeracao{Quantidade: 100, Prognostico: 0}, 0},
-		{"Nil dado", nil, 0},
+		{testCaseNormalCalc, &model.DadoGeracao{Quantidade: 100, Prognostico: 100}, 1.0},
+		{testCaseAbovePrognosis, &model.DadoGeracao{Quantidade: 120, Prognostico: 100}, 1.2},
+		{testCaseBelowPrognosis, &model.DadoGeracao{Quantidade: 80, Prognostico: 100}, 0.8},
+		{testCaseZeroPrognosis, &model.DadoGeracao{Quantidade: 100, Prognostico: 0}, 0},
+		{testCaseNilDado, nil, 0},
 	}
 
 	for _, tt := range tests {
@@ -697,16 +780,16 @@ func TestDadoGeracaoIsManualEntry(t *testing.T) {
 		dado     *model.DadoGeracao
 		expected bool
 	}{
-		{"Manual entry", &model.DadoGeracao{Manual: true}, true},
-		{"Automatic entry", &model.DadoGeracao{Manual: false}, false},
-		{"Nil dado", nil, false},
+		{testCaseManualEntry, &model.DadoGeracao{Manual: true}, true},
+		{testCaseAutomaticEntry, &model.DadoGeracao{Manual: false}, false},
+		{testCaseNilDado, nil, false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := tt.dado.IsManualEntry()
 			if result != tt.expected {
-				t.Errorf("Expected %v, got %v", tt.expected, result)
+				t.Errorf(expectedVsGot, tt.expected, result)
 			}
 		})
 	}
@@ -721,17 +804,17 @@ func TestGeracaoDetalheHasDescription(t *testing.T) {
 		geracao  *model.GeracaoDetalhe
 		expected bool
 	}{
-		{"With description", &model.GeracaoDetalhe{Descricao: &descricaoNaoVazia}, true},
-		{"With empty description", &model.GeracaoDetalhe{Descricao: &descricaoVazia}, false},
-		{"Without description", &model.GeracaoDetalhe{}, false},
-		{"Nil geracao", nil, false},
+		{testCaseWithDescription, &model.GeracaoDetalhe{Descricao: &descricaoNaoVazia}, true},
+		{testCaseWithEmptyDesc, &model.GeracaoDetalhe{Descricao: &descricaoVazia}, false},
+		{testCaseWithoutDescription, &model.GeracaoDetalhe{}, false},
+		{testCaseNilGeracao, nil, false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := tt.geracao.HasDescription()
 			if result != tt.expected {
-				t.Errorf("Expected %v, got %v", tt.expected, result)
+				t.Errorf(expectedVsGot, tt.expected, result)
 			}
 		})
 	}
@@ -744,16 +827,16 @@ func TestLabelValueIsValid(t *testing.T) {
 		label    *model.LabelValue
 		expected bool
 	}{
-		{"Valid label", &model.LabelValue{Label: genLabelStr, Value: 100.5}, true},
-		{"With empty label", &model.LabelValue{Label: "", Value: 100.5}, false},
-		{"Nil label", nil, false},
+		{testCaseValidLabel, &model.LabelValue{Label: genLabelStr, Value: 100.5}, true},
+		{testCaseEmptyLabel, &model.LabelValue{Label: "", Value: 100.5}, false},
+		{testCaseNilLabel, nil, false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := tt.label.IsValid()
 			if result != tt.expected {
-				t.Errorf("Expected %v, got %v", tt.expected, result)
+				t.Errorf(expectedVsGot, tt.expected, result)
 			}
 		})
 	}

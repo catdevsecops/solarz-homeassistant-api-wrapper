@@ -1,7 +1,13 @@
-# Multi-stage build Dockerfile
+# Multi-stage build Dockerfile - Multi-architecture support
+# Supports: linux/amd64, linux/arm64, and others
 
 # Stage 1: Builder
-FROM golang:1.21-alpine AS builder
+FROM --platform=$BUILDPLATFORM golang:1.23-alpine AS builder
+
+ARG BUILDPLATFORM
+ARG TARGETPLATFORM
+ARG TARGETARCH
+ARG TARGETOS
 
 WORKDIR /build
 
@@ -9,7 +15,7 @@ WORKDIR /build
 RUN apk add --no-cache git ca-certificates tzdata
 
 # Copiar módulos
-COPY go.mod go.sum ./
+COPY go.mod ./
 
 # Baixar dependências
 RUN go mod download
@@ -17,8 +23,9 @@ RUN go mod download
 # Copiar código
 COPY . .
 
-# Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+# Build com arquitetura alvo
+# Usa variáveis do buildkit para compilar para a arquitetura correta
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
     go build \
     -ldflags="-w -s" \
     -o solarz-api \
