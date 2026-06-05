@@ -18,42 +18,28 @@ import (
 const applicationJSON = "application/json"
 
 const (
-	// HTTP methods
-	getMethod    = "GET"
-	postMethod   = "POST"
-	deleteMethod = "DELETE"
-
-	// Paths
-	healthPath = "/health"
+	// Paths.
+	healthPath      = "/health"
 	dataPath        = "/api/v1/data"
 	debugQueryPath  = "/health?debug=true&verbose=1"
 	nonexistentPath = "/nonexistent"
 	partialPath     = "/api"
 
-	// Response fields and values
-	statusField  = "status"
-	statusOK     = "ok"
-	errorField   = "Error"
-	errorMessage = "Test error"
+	// Response fields and values.
+	statusField = "status"
+	statusOK    = "ok"
 
-	// Headers
-	contentTypeHeader   = "Content-Type"
+	// Headers.
 	userAgentHeader     = "User-Agent"
 	authorizationHeader = "Authorization"
 	customUserAgent     = "Custom-Client/1.0"
 	bearerToken         = "Bearer token123"
 
-	// Server configuration
+	// Server configuration.
 	localhostAddr        = "localhost:8080"
 	anyInterfaceAddr8080 = ":8080"
 	anyInterfaceAddr3000 = ":3000"
 	loopbackAddr9000     = "127.0.0.1:9000"
-
-	// Size limits and iteration counts
-	maxResponseSize      = 1024
-	concurrentCount      = 5
-	stateCheckIterations = 6
-	concurrentRouters    = 3
 )
 
 // TestHealthHandlerSuccess testa o health check com sucesso.
@@ -63,18 +49,18 @@ func TestHealthHandlerSuccess(t *testing.T) {
 
 	healthHandler(responseRecorder, req)
 
-	// Verifica status code
+	// Verifica status code.
 	if responseRecorder.Code != http.StatusOK {
 		t.Errorf("healthHandler() returned status %d, want %d", responseRecorder.Code, http.StatusOK)
 	}
 
-	// Verifica Content-Type
+	// Verifica Content-Type.
 	contentType := responseRecorder.Header().Get("Content-Type")
 	if contentType != applicationJSON {
 		t.Errorf("Content-Type = %q, want 'application/json'", contentType)
 	}
 
-	// Verifica body
+	// Verifica body.
 	var result map[string]string
 	if err := json.NewDecoder(responseRecorder.Body).Decode(&result); err != nil {
 		t.Errorf("failed to decode response: %v", err)
@@ -126,18 +112,17 @@ func TestHealthHandlerResponseBody(t *testing.T) {
 
 	healthHandler(responseRecorder, req)
 
-	// Verifica se o body não está vazio
+	// Verifica se o body não está vazio.
 	if responseRecorder.Body.Len() == 0 {
 		t.Error("healthHandler() returned empty body")
 	}
 
-	// Verifica se é JSON válido
-	var result map[string]interface{}
-	if err := json.NewDecoder(bytes.NewReader(responseRecorder.Body.Bytes())).Decode(&result); err != nil {
+	var result map[string]any
+	if err := json.NewDecoder(responseRecorder.Body).Decode(&result); err != nil {
 		t.Errorf("invalid JSON in response: %v", err)
 	}
 
-	// Verifica campos específicos
+	// Verifica campos específicos.
 	if _, ok := result[statusField]; !ok {
 		t.Error("'status' field missing from response")
 	}
@@ -150,12 +135,12 @@ func TestHealthHandlerHeadersSet(t *testing.T) {
 
 	healthHandler(responseRecorder, req)
 
-	// Verifica Content-Type
+	// Verifica Content-Type.
 	if ct := responseRecorder.Header().Get("Content-Type"); ct != applicationJSON {
 		t.Errorf("Content-Type header = %q, want 'application/json'", ct)
 	}
 
-	// Verifica se Status Code está correto
+	// Verifica se Status Code está correto.
 	if responseRecorder.Code != http.StatusOK {
 		t.Errorf("HTTP status = %d, want %d", responseRecorder.Code, http.StatusOK)
 	}
@@ -168,7 +153,7 @@ func TestHealthHandlerDecodesCorrectly(t *testing.T) {
 
 	healthHandler(responseRecorder, req)
 
-	// Decodifica o body
+	// Decodifica o body.
 	body, err := io.ReadAll(responseRecorder.Body)
 	if err != nil {
 		t.Fatalf("failed to read body: %v", err)
@@ -179,7 +164,7 @@ func TestHealthHandlerDecodesCorrectly(t *testing.T) {
 		t.Fatalf("failed to unmarshal JSON: %v", err)
 	}
 
-	// Verifica tipo de dados
+	// Verifica tipo de dados.
 	if status, ok := result[statusField]; !ok {
 		t.Fatal("'status' key not found in response")
 	} else if status != statusOK {
@@ -194,17 +179,17 @@ func TestHealthHandlerResponseStructure(t *testing.T) {
 
 	healthHandler(responseRecorder, req)
 
-	var result map[string]interface{}
+	var result map[string]any
 	if err := json.NewDecoder(responseRecorder.Body).Decode(&result); err != nil {
 		t.Fatalf("failed to decode response: %v", err)
 	}
 
-	// Verifica que há apenas um campo
+	// Verifica que há apenas um campo.
 	if len(result) != 1 {
 		t.Errorf("expected 1 field in response, got %d", len(result))
 	}
 
-	// Verifica o campo status
+	// Verifica o campo status.
 	if status, exists := result[statusField]; !exists {
 		t.Error("'status' field is missing")
 	} else if statusStr, ok := status.(string); !ok {
@@ -216,9 +201,9 @@ func TestHealthHandlerResponseStructure(t *testing.T) {
 
 // TestHealthHandlerIsIdempotent testa se múltiplas chamadas retornam o mesmo.
 func TestHealthHandlerIsIdempotent(t *testing.T) {
-	var results []map[string]string
+	results := make([]map[string]string, 0, 3)
 
-	for iteration := 0; iteration < 3; iteration++ {
+	for element := range 3 {
 		req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, healthPath, nil)
 		responseRecorder := httptest.NewRecorder()
 
@@ -226,18 +211,18 @@ func TestHealthHandlerIsIdempotent(t *testing.T) {
 
 		var result map[string]string
 		if err := json.NewDecoder(responseRecorder.Body).Decode(&result); err != nil {
-			t.Errorf("iteration %d: failed to decode: %v", iteration, err)
+			t.Errorf("iteration %d: failed to decode: %v", element, err)
 			continue
 		}
 
 		if responseRecorder.Code != http.StatusOK {
-			t.Errorf("iteration %d: expected status %d, got %d", iteration, http.StatusOK, responseRecorder.Code)
+			t.Errorf("iteration %d: expected status %d, got %d", element, http.StatusOK, responseRecorder.Code)
 		}
 
 		results = append(results, result)
 	}
 
-	// Verifica se todos os resultados são iguais
+	// Verifica se todos os resultados são iguais.
 	for iteration := 1; iteration < len(results); iteration++ {
 		if results[iteration][statusField] != results[0][statusField] {
 			t.Errorf("inconsistent results: iteration 0 = %q, iteration %d = %q",
@@ -250,7 +235,7 @@ func TestHealthHandlerIsIdempotent(t *testing.T) {
 func TestHealthHandlerConcurrency(t *testing.T) {
 	done := make(chan bool, 5)
 
-	for iteration := 0; iteration < 5; iteration++ {
+	for range 5 {
 		go func() {
 			req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, healthPath, nil)
 			responseRecorder := httptest.NewRecorder()
@@ -270,8 +255,8 @@ func TestHealthHandlerConcurrency(t *testing.T) {
 		}()
 	}
 
-	// Aguarda todas as goroutines
-	for iteration := 0; iteration < 5; iteration++ {
+	// Aguarda todas as goroutines.
+	for range 5 {
 		<-done
 	}
 }
@@ -283,7 +268,7 @@ func TestHealthHandlerWithQueryParams(t *testing.T) {
 
 	healthHandler(responseRecorder, req)
 
-	// O handler deve ignorar query params e retornar normalmente
+	// O handler deve ignorar query params e retornar normalmente.
 	if responseRecorder.Code != http.StatusOK {
 		t.Errorf("expected status %d, got %d", http.StatusOK, responseRecorder.Code)
 	}
@@ -307,7 +292,7 @@ func TestHealthHandlerWithHeaders(t *testing.T) {
 
 	healthHandler(responseRecorder, req)
 
-	// O handler deve ignorar headers customizados e retornar normalmente
+	// O handler deve ignorar headers customizados e retornar normalmente.
 	if responseRecorder.Code != http.StatusOK {
 		t.Errorf("expected status %d, got %d", http.StatusOK, responseRecorder.Code)
 	}
@@ -329,7 +314,7 @@ func TestHealthHandlerIntegration(t *testing.T) {
 
 	healthHandler(responseRecorder, req)
 
-	// Verifica estrutura da resposta
+	// Verifica estrutura da resposta.
 	if responseRecorder.Code != http.StatusOK {
 		t.Fatalf("expected status %d, got %d", http.StatusOK, responseRecorder.Code)
 	}
@@ -339,7 +324,7 @@ func TestHealthHandlerIntegration(t *testing.T) {
 		t.Fatalf("failed to decode response: %v", err)
 	}
 
-	// Valida tipos de dados
+	// Valida tipos de dados.
 	for key, value := range result {
 		if key != statusField {
 			t.Errorf("unexpected key in response: %q", key)
@@ -368,13 +353,13 @@ func TestHealthHandlerResponseSize(t *testing.T) {
 
 	healthHandler(responseRecorder, req)
 
-	// A resposta deve ser pequena
+	// A resposta deve ser pequena.
 	maxSize := 1024 // 1KB
 	if responseRecorder.Body.Len() > maxSize {
 		t.Errorf("response too large: %d bytes, expected <= %d bytes", responseRecorder.Body.Len(), maxSize)
 	}
 
-	// A resposta deve conter dados
+	// A resposta deve conter dados.
 	if responseRecorder.Body.Len() == 0 {
 		t.Error("response is empty")
 	}
@@ -382,12 +367,12 @@ func TestHealthHandlerResponseSize(t *testing.T) {
 
 // TestHealthHandlerErrorHandling testa manipulação de erro (mocado).
 func TestHealthHandlerErrorHandling(t *testing.T) {
-	// Este teste verifica que o handler trata erros gracefully
-	// Mesmo que neste caso simples não haja muitos erros possíveis
+	// Este teste verifica que o handler trata erros gracefully.
+	// Mesmo que neste caso simples não haja muitos erros possíveis.
 	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, healthPath, nil)
 	responseRecorder := httptest.NewRecorder()
 
-	// Deve não crashear
+	// Deve não crashear.
 	healthHandler(responseRecorder, req)
 
 	if responseRecorder.Code == 0 {
@@ -401,13 +386,13 @@ func TestErrorResponseModel(t *testing.T) {
 		Error: "Test error",
 	}
 
-	// Marshala para JSON
+	// Marshala para JSON.
 	body, err := json.Marshal(errorResp)
 	if err != nil {
 		t.Fatalf("failed to marshal error response: %v", err)
 	}
 
-	// Unmarshala de volta
+	// Unmarshala de volta.
 	var result model.ErrorResponse
 	if err := json.Unmarshal(body, &result); err != nil {
 		t.Fatalf("failed to unmarshal error response: %v", err)
@@ -420,23 +405,23 @@ func TestErrorResponseModel(t *testing.T) {
 
 // TestHealthHandlerMultipleResponses testa múltiplas respostas.
 func TestHealthHandlerMultipleResponses(t *testing.T) {
-	for iteration := 0; iteration < 3; iteration++ {
+	for element := range 3 {
 		req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, healthPath, nil)
 		responseRecorder := httptest.NewRecorder()
 
 		healthHandler(responseRecorder, req)
 
 		if responseRecorder.Code != http.StatusOK {
-			t.Errorf("request %d: expected status %d, got %d", iteration, http.StatusOK, responseRecorder.Code)
+			t.Errorf("request %d: expected status %d, got %d", element, http.StatusOK, responseRecorder.Code)
 		}
 
 		if responseRecorder.Header().Get("Content-Type") != applicationJSON {
-			t.Errorf("request %d: invalid content type", iteration)
+			t.Errorf("request %d: invalid content type", element)
 		}
 
 		var result map[string]string
 		if err := json.NewDecoder(responseRecorder.Body).Decode(&result); err != nil {
-			t.Errorf("request %d: failed to decode: %v", iteration, err)
+			t.Errorf("request %d: failed to decode: %v", element, err)
 		}
 	}
 }
@@ -444,14 +429,14 @@ func TestHealthHandlerMultipleResponses(t *testing.T) {
 // TestHealthHandlerStatelessness testa se o handler é stateless.
 func TestHealthHandlerStatelessness(t *testing.T) {
 	// Faz várias requisições
-	for iteration := 0; iteration < 5; iteration++ {
+	for element := range 5 {
 		req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, healthPath, nil)
 		responseRecorder := httptest.NewRecorder()
 
 		healthHandler(responseRecorder, req)
 
 		if responseRecorder.Code != http.StatusOK {
-			t.Errorf("request %d failed", iteration)
+			t.Errorf("request %d failed", element)
 		}
 	}
 
@@ -473,14 +458,14 @@ func TestHealthHandlerContentType(t *testing.T) {
 
 	healthHandler(responseRecorder, req)
 
-	// Verifica se Content-Type é exatamente o esperado
+	// Verifica se Content-Type é exatamente o esperado.
 	expectedCT := applicationJSON
 	if ct := responseRecorder.Header().Get("Content-Type"); ct != expectedCT {
 		t.Errorf("Content-Type = %q, want %q", ct, expectedCT)
 	}
 }
 
-// === TESTES DE CONFIGURAÇÃO DO SERVIDOR ===
+// === TESTES DE CONFIGURAÇÃO DO SERVIDOR. ===
 
 // TestServerConfig testa a estrutura de configuração.
 func TestServerConfig(t *testing.T) {
@@ -519,6 +504,10 @@ func TestServerConfigDifferentAddresses(t *testing.T) {
 
 			if config.Addr != testCase.addr {
 				t.Errorf("expected addr '%s', got '%s'", testCase.addr, config.Addr)
+			}
+
+			if config.Handler == nil {
+				t.Error("handler should not be nil")
 			}
 		})
 	}
@@ -568,7 +557,7 @@ func TestSetupRouterMultipleRoutes(t *testing.T) {
 
 			router.ServeHTTP(responseRecorder, req)
 
-			// Qualquer status code (não 404) indica que a rota existe
+			// Qualquer status code (não 404) indica que a rota existe.
 			if responseRecorder.Code == http.StatusNotFound {
 				t.Errorf("%s: route not found", testCase.name)
 			}
@@ -603,12 +592,12 @@ func TestSetupRouterHealthEndpoint(t *testing.T) {
 func TestSetupRouterReturnsServeMux(t *testing.T) {
 	router := setupRouter()
 
-	// Valida que router é do tipo esperado
+	// Valida que router é do tipo esperado.
 	if router == nil {
 		t.Error("expected *http.ServeMux, got nil")
 	}
 
-	// Valida que é uma instância de http.ServeMux verificando se implementa http.Handler
+	// Valida que é uma instância de http.ServeMux verificando se implementa http.Handler.
 	var _ http.Handler = router
 	t.Logf("setupRouter returns valid http.Handler")
 }
@@ -618,10 +607,10 @@ func TestSetupRouterIsConsistent(t *testing.T) {
 	router1 := setupRouter()
 	router2 := setupRouter()
 
-	// Ambos devem ter as mesmas rotas
+	// Ambos devem ter as mesmas rotas.
 	for path, method := range map[string]string{
-		healthPath:      "GET",
-		dataPath: "GET",
+		healthPath: "GET",
+		dataPath:   "GET",
 	} {
 		req1 := httptest.NewRequestWithContext(context.Background(), method, path, nil)
 		responseRecorder1 := httptest.NewRecorder()
@@ -653,15 +642,15 @@ func TestSetupRouterContentType(t *testing.T) {
 
 // TestMainIntegration testa se main pode ser chamada sem crashear (com limites).
 func TestMainIntegration(t *testing.T) {
-	// Este teste apenas verifica que setupRouter() funciona
-	// main() não pode ser testado diretamente pois inicia um servidor
+	// Este teste apenas verifica que setupRouter() funciona.
+	// main() não pode ser testado diretamente pois inicia um servidor.
 	router := setupRouter()
 
 	if router == nil {
 		t.Fatal("setupRouter returned nil")
 	}
 
-	// Verifica que router pode servir requisições
+	// Verifica que router pode servir requisições.
 	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, healthPath, nil)
 	responseRecorder := httptest.NewRecorder()
 
@@ -679,6 +668,10 @@ func TestServerConfigWithHandler(t *testing.T) {
 	config := ServerConfig{
 		Addr:    anyInterfaceAddr8080,
 		Handler: router,
+	}
+
+	if config.Addr != anyInterfaceAddr8080 {
+		t.Errorf("expected addr '%s', got '%s'", anyInterfaceAddr8080, config.Addr)
 	}
 
 	if config.Handler == nil {
@@ -701,7 +694,7 @@ func TestSetupRouterWithConcurrentRequests(t *testing.T) {
 	router := setupRouter()
 	done := make(chan bool, 5)
 
-	for iteration := 0; iteration < 5; iteration++ {
+	for range 5 {
 		go func() {
 			req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, healthPath, nil)
 			responseRecorder := httptest.NewRecorder()
@@ -716,7 +709,7 @@ func TestSetupRouterWithConcurrentRequests(t *testing.T) {
 		}()
 	}
 
-	for iteration := 0; iteration < 5; iteration++ {
+	for range 5 {
 		<-done
 	}
 }
@@ -730,6 +723,10 @@ func TestServerConfigEmptyAddr(t *testing.T) {
 
 	if config.Addr != "" {
 		t.Errorf("expected empty addr, got '%s'", config.Addr)
+	}
+
+	if config.Handler == nil {
+		t.Error("handler should not be nil")
 	}
 }
 
@@ -760,8 +757,8 @@ func TestSetupRouterHandlesInvalidPaths(t *testing.T) {
 
 			router.ServeHTTP(responseRecorder, req)
 
-			// Caminhos inválidos devem retornar 404 ou não encontrado
-			// (depende da implementação do handler)
+			// Caminhos inválidos devem retornar 404 ou não encontrado.
+			// (depende da implementação do handler.)
 			if responseRecorder.Code == http.StatusOK {
 				t.Logf("%s returned 200 (router serves this path)", testCase.path)
 			}
@@ -773,7 +770,7 @@ func TestSetupRouterHandlesInvalidPaths(t *testing.T) {
 func TestSetupRouterConcurrent(t *testing.T) {
 	done := make(chan bool, 3)
 
-	for iteration := 0; iteration < 3; iteration++ {
+	for range 3 {
 		go func() {
 			router := setupRouter()
 
@@ -794,31 +791,31 @@ func TestSetupRouterConcurrent(t *testing.T) {
 		}()
 	}
 
-	for iteration := 0; iteration < 3; iteration++ {
+	for range 3 {
 		<-done
 	}
 }
 
-// === TESTES COM CAPTURA DE LOGS ===
+// === TESTES COM CAPTURA DE LOGS. ===
 
 // captureLogOutput captures the log output during the execution of a function.
 func captureLogOutput(function func()) string {
-	// Cria um buffer para capturar logs
+	// Cria um buffer para capturar logs.
 	var buf bytes.Buffer
 
-	// Salva o logger original
+	// Salva o logger original.
 	originalLogger := log.Writer()
 	originalFlags := log.Flags()
 	originalPrefix := log.Prefix()
 
-	// Define novo logger que escreve no buffer
+	// Define novo logger que escreve no buffer.
 	log.SetOutput(&buf)
 	log.SetFlags(log.LstdFlags)
 
-	// Executa a função
+	// Executa a função.
 	function()
 
-	// Restaura o logger original
+	// Restaura o logger original.
 	log.SetOutput(originalLogger)
 	log.SetFlags(originalFlags)
 	log.SetPrefix(originalPrefix)
@@ -829,17 +826,17 @@ func captureLogOutput(function func()) string {
 // TestHealthHandlerLogging testa se os logs são registrados corretamente em caso de erro.
 func TestHealthHandlerLogging(t *testing.T) {
 	t.Run("captura log em caso de erro de encoding", func(t *testing.T) {
-		// Este teste verifica se logs são gerados
-		// Para testar erro de encoding real, precisaríamos de um mock
+		// Este teste verifica se logs são gerados.
+		// Para testar erro de encoding real, precisaríamos de um mock.
 		req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, healthPath, nil)
 		responseRecorder := httptest.NewRecorder()
 
-		// Captura logs durante a execução
+		// Captura logs durante a execução.
 		logOutput := captureLogOutput(func() {
 			healthHandler(responseRecorder, req)
 		})
 
-		// Em caso normal, não deve haver erro de log
+		// Em caso normal, não deve haver erro de log.
 		if strings.Contains(logOutput, "Failed to encode response") {
 			t.Errorf("unexpected error log: %s", logOutput)
 		}
@@ -848,16 +845,16 @@ func TestHealthHandlerLogging(t *testing.T) {
 
 // TestHealthHandlerLoggingWithFailedWrite testa logging quando há erro na escrita.
 func TestHealthHandlerLoggingWithFailedWrite(t *testing.T) {
-	// Cria um ResponseWriter que falha ao escrever
+	// Cria um ResponseWriter que falha ao escrever.
 	failWriter := &failingWriter{}
 	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, healthPath, nil)
 
-	// Captura logs
+	// Captura logs.
 	logOutput := captureLogOutput(func() {
 		healthHandler(failWriter, req)
 	})
 
-	// Deve conter mensagem de erro
+	// Deve conter mensagem de erro.
 	if !strings.Contains(logOutput, "Failed to encode response") {
 		t.Errorf("expected error log not found\nGot: %s", logOutput)
 	}
@@ -874,11 +871,11 @@ func (fw *failingWriter) Header() http.Header {
 
 func (fw *failingWriter) Write(_ []byte) (int, error) {
 	fw.headerWritten = true
-	return 0, io.ErrClosedPipe // Simula erro de escrita
+	return 0, io.ErrClosedPipe // Simula erro de escrita.
 }
 
 func (fw *failingWriter) WriteHeader(_ int) {
-	// Não faz nada
+	// Não faz nada.
 }
 
 // TestLoggerCaptureBasic testa a função de captura de logs.
@@ -938,7 +935,7 @@ func TestHealthHandlerNoErrorLogsNormally(t *testing.T) {
 		healthHandler(responseRecorder, req)
 	})
 
-	// Não deve haver "Failed" ou "error" (case-insensitive)
+	// Não deve haver "Failed" ou "error" (case-insensitive.)
 	if strings.Contains(strings.ToLower(logOutput), "failed") ||
 		strings.Contains(strings.ToLower(logOutput), "error") {
 		t.Errorf("unexpected error in normal operation: %s", logOutput)
@@ -947,7 +944,7 @@ func TestHealthHandlerNoErrorLogsNormally(t *testing.T) {
 
 // TestHealthHandlerErrorLogContainsTimestamp testa se logs contêm timestamp.
 func TestHealthHandlerErrorLogContainsTimestamp(t *testing.T) {
-	// Cria writer que falha
+	// Cria writer que falha.
 	failWriter := &failingWriter{}
 	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, healthPath, nil)
 
@@ -955,7 +952,7 @@ func TestHealthHandlerErrorLogContainsTimestamp(t *testing.T) {
 		healthHandler(failWriter, req)
 	})
 
-	// Deve conter timestamp (padrão: 2006/01/02 15:04:05)
+	// Deve conter timestamp (padrão: 2006/01/02 15:04:05.)
 	hasTimestamp := strings.Contains(logOutput, "/") || strings.Contains(logOutput, ":")
 	if !hasTimestamp {
 		t.Errorf("expected timestamp in log, got: %s", logOutput)
@@ -967,7 +964,7 @@ func TestMultipleHandlerCallsLogging(t *testing.T) {
 	var successCount int
 	var errorCount int
 
-	for iteration := 0; iteration < 3; iteration++ {
+	for range 3 {
 		req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, healthPath, nil)
 		responseRecorder := httptest.NewRecorder()
 
@@ -1023,16 +1020,16 @@ func TestLoggerWithDifferentLevels(t *testing.T) {
 
 // TestLoggerRestoresOriginalState testa se o logger é restaurado corretamente.
 func TestLoggerRestoresOriginalState(t *testing.T) {
-	// Salva estado original
+	// Salva estado original.
 	originalFlags := log.Flags()
 	originalPrefix := log.Prefix()
 
-	// Executa captura
+	// Executa captura.
 	captureLogOutput(func() {
 		log.Println("Test")
 	})
 
-	// Verifica se foi restaurado
+	// Verifica se foi restaurado.
 	if log.Flags() != originalFlags {
 		t.Errorf("logger flags not restored: expected %d, got %d", originalFlags, log.Flags())
 	}
@@ -1046,7 +1043,7 @@ func TestLoggerRestoresOriginalState(t *testing.T) {
 func TestHealthHandlerConcurrentLogging(t *testing.T) {
 	done := make(chan bool, 3)
 
-	for iteration := 0; iteration < 3; iteration++ {
+	for range 3 {
 		go func() {
 			req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, healthPath, nil)
 			responseRecorder := httptest.NewRecorder()
@@ -1063,7 +1060,7 @@ func TestHealthHandlerConcurrentLogging(t *testing.T) {
 		}()
 	}
 
-	for iteration := 0; iteration < 3; iteration++ {
+	for range 3 {
 		<-done
 	}
 }
@@ -1103,14 +1100,14 @@ func TestLogOutputContainsErrorDetails(t *testing.T) {
 		healthHandler(failWriter, req)
 	})
 
-	// Deve conter "Failed to encode response" e detalhes do erro
+	// Deve conter "Failed to encode response" e detalhes do erro.
 	if !strings.Contains(logOutput, "Failed to encode response") {
 		t.Errorf("log should contain error message, got: %s", logOutput)
 	}
 
-	// Deve conter referência ao erro
+	// Deve conter referência ao erro.
 	if !strings.Contains(logOutput, "ErrClosedPipe") && !strings.Contains(logOutput, "closed") {
-		// Também aceita qualquer menção do erro
+		// Também aceita qualquer menção do erro.
 		if !strings.Contains(logOutput, "error") {
 			t.Errorf("log should contain error details, got: %s", logOutput)
 		}

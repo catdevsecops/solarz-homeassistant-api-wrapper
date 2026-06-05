@@ -10,23 +10,23 @@ import (
 const testDescription = "Test description"
 
 const (
-	// Test IDs and names
-	testID      = "test-id"
-	testName    = "Test Name"
-	testValue   = "Test Value"
+	// Test IDs and names.
+	testID    = "test-id"
+	testName  = "Test Name"
+	testValue = "Test Value"
 
-	// Data values
-	dataDate1     = "2024-01-01"
-	usinaDenom    = "Usina A"
+	// Data values.
+	dataDate1  = "2024-01-01"
+	usinaDenom = "Usina A"
 
-	// Climate
+	// Climate.
 	climaDesc    = "Sunny"
 	climaCreated = "2024-01-01T10:00:00Z"
 	extIDValue   = "ext-1"
 
-	// Generation
-	genLabel1  = "Generation 1"
-	genLabel2  = "Generation 2"
+	// Generation.
+	genLabel1   = "Generation 1"
+	genLabel2   = "Generation 2"
 	genLabelStr = "Generation"
 )
 
@@ -650,7 +650,8 @@ func TestSolarzResponseGetTotalDados(t *testing.T) {
 	}{
 		{"With one dato", &model.SolarzResponse{Dados: []model.DadoGeracao{{Data: dataDate1}}}, 1},
 		{"With multiple dados", &model.SolarzResponse{Dados: []model.DadoGeracao{
-			{Data: dataDate1}, {Data: "2024-01-02"}, {Data: "2024-01-03"}}}, 3},
+			{Data: dataDate1}, {Data: "2024-01-02"}, {Data: "2024-01-03"},
+		}}, 3},
 		{"With no dados", &model.SolarzResponse{Dados: []model.DadoGeracao{}}, 0},
 		{"Nil response", nil, 0},
 	}

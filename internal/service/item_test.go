@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	// Format float test values and expectations
+	// Format float test values and expectations.
 	posNumber   = "positive number"
 	wholNumber  = "whole number"
 	decNumber   = "decimal number"
@@ -26,15 +26,15 @@ const (
 	negExpected   = "-15.55"
 	largeExpected = "1234567.89"
 
-	// Data for API tests
-	dataDate1         = "2026-06-01"
-	dataDate2         = "2026-06-04"
-	dataDate3         = "2026-06-02"
-	userQuantity      = "16.20"
-	dataDenominacao   = "(3633) Clayton - Mogi"
-	invalidJSONData   = "invalid json"
-	invalidURLAddr    = "http://invalid-url-that-does-not-exist:9999"
-	expectString      = "2026-06-04 - (3633) Clayton - Mogi"
+	// Data for API tests.
+	dataDate1       = "2026-06-01"
+	dataDate2       = "2026-06-04"
+	dataDate3       = "2026-06-02"
+	userQuantity    = "16.20"
+	dataDenominacao = "(3633) Clayton - Mogi"
+	invalidJSONData = "invalid json"
+	invalidURLAddr  = "http://invalid-url-that-does-not-exist:9999"
+	expectString    = "2026-06-04 - (3633) Clayton - Mogi"
 )
 
 func TestFormatFloat(t *testing.T) {
@@ -89,7 +89,6 @@ func TestGetData_EmptyEndpoint(t *testing.T) {
 	t.Run("returns empty slice when SOLARZ_ENDPOINT is not set", func(t *testing.T) {
 		t.Setenv("SOLARZ_ENDPOINT", "")
 		result, err := service.GetData()
-
 		if err != nil {
 			t.Errorf("GetData() error = %v, want nil", err)
 		}
@@ -143,7 +142,6 @@ func TestGetData_ValidAPI(t *testing.T) {
 
 		t.Setenv("SOLARZ_ENDPOINT", apiServer.URL)
 		result, err := service.GetData()
-
 		if err != nil {
 			t.Errorf("GetData() error = %v, want nil", err)
 		}
@@ -181,7 +179,6 @@ func TestGetData_EmptyData(t *testing.T) {
 
 		t.Setenv("SOLARZ_ENDPOINT", apiServer.URL)
 		result, err := service.GetData()
-
 		if err != nil {
 			t.Errorf("GetData() error = %v, want nil", err)
 		}

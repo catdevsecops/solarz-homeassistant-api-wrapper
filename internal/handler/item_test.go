@@ -14,21 +14,21 @@ import (
 const applicationJSON = "application/json"
 
 const (
-	// Paths
+	// Paths.
 	dataPath = "/api/v1/data"
 
-	// Response fields
+	// Response fields.
 	statusField    = "status"
 	errorField     = "Error"
 	errorMessage   = "Failed to fetch items"
 	invalidURLAddr = "http://invalid-url-that-does-not-exist:9999"
 
-	// Data values for testing
-	dataDate1         = "2026-06-01"
-	dataDate2         = "2026-06-04"
-	dataDenominacao   = "(3633) Clayton - Mogi"
-	expectedValue     = "25.50"
-	invalidJSONData   = "not valid json"
+	// Data values for testing.
+	dataDate1       = "2026-06-01"
+	dataDate2       = "2026-06-04"
+	dataDenominacao = "(3633) Clayton - Mogi"
+	expectedValue   = "25.50"
+	invalidJSONData = "not valid json"
 )
 
 func TestGetData_EmptyEndpoint(t *testing.T) {
